@@ -4,8 +4,8 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
-  title: "ProCRM | Manager",
-  description: "Unified Management System",
+  title: "ProCRM — Smart Operations Management",
+  description: "The all-in-one CRM platform for managing orders, crews, finances, and sales.",
 };
 
 export default function RootLayout({ children }) {
