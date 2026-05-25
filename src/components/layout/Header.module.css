@@ -1,0 +1,353 @@
+.header {
+  height: 80px;
+  background-color: var(--header-bg);
+  border-bottom: 1px solid var(--header-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 30px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.pageTitle h1 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--header-text);
+  margin-bottom: 4px;
+}
+
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--body-text-muted);
+}
+
+.current {
+  color: var(--body-text);
+  font-weight: 500;
+}
+
+.separator {
+  font-size: 10px;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.searchBar {
+  position: relative;
+  width: 250px;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--body-text-muted);
+}
+
+.searchInput {
+  width: 100%;
+  height: 38px;
+  background-color: var(--body-bg);
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 0 16px 0 36px;
+  font-size: 13px;
+  outline: none;
+  transition: all 0.2s;
+  color: var(--body-text);
+}
+
+.searchInput:focus {
+  background-color: #ffffff;
+  border-color: var(--primary);
+}
+
+.actionIcons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.iconBtn {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--body-text-muted);
+  transition: all 0.2s;
+}
+
+.iconBtn:hover {
+  background-color: var(--body-bg);
+  color: var(--primary);
+}
+
+.badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background-color: var(--danger);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  height: 16px;
+  min-width: 16px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  border: 2px solid white;
+}
+
+.userProfile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.userProfile:hover {
+  background-color: var(--body-bg);
+}
+
+.avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  background-color: var(--primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.userInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.userName {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--header-text);
+}
+
+.userRole {
+  font-size: 12px;
+  color: var(--body-text-muted);
+}
+
+.dropdownIcon {
+  color: var(--body-text-muted);
+  margin-left: 4px;
+  transition: transform 0.2s ease;
+}
+
+.dropdownIconOpen {
+  transform: rotate(180deg);
+}
+
+/* Role Badge */
+.roleBadge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  border: 1px solid;
+  white-space: nowrap;
+}
+
+.roleDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* User Profile Wrapper (for dropdown positioning) */
+.userProfileWrapper {
+  position: relative;
+}
+
+/* User Dropdown */
+.userDropdown {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  width: 220px;
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  z-index: 200;
+  overflow: hidden;
+  animation: fadeInDown 0.15s ease;
+}
+
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.userDropdownHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background-color: var(--body-bg);
+  border-bottom: 1px solid var(--card-border);
+}
+
+.avatarLg {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background-color: var(--primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.udName {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--header-text);
+}
+
+.udRole {
+  font-size: 11px;
+  color: var(--body-text-muted);
+  margin-top: 2px;
+}
+
+.userDropdownList {
+  padding: 8px;
+}
+
+.udItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--body-text);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.15s;
+  text-align: left;
+}
+
+.udItem:hover {
+  background-color: var(--body-bg);
+  color: var(--header-text);
+}
+
+.udDivider {
+  height: 1px;
+  background-color: var(--card-border);
+  margin: 4px 8px;
+}
+
+.udLogout {
+  color: #f1416c;
+}
+
+.udLogout:hover {
+  background-color: rgba(241, 65, 108, 0.08);
+  color: #f1416c;
+}
+
+/* Notifications dropdown */
+.notifWrapper {
+  position: relative;
+}
+
+.notifDropdown {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  width: 280px;
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+  z-index: 200;
+  overflow: hidden;
+}
+
+.notifHeader {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.notifHeader h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--header-text);
+}
+
+.notifList {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.notifItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.notifItem:hover {
+  background-color: var(--body-bg);
+}
+
+.notifItem span {
+  font-size: 13px;
+  color: var(--body-text);
+}
+
+.notifIcon {
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}

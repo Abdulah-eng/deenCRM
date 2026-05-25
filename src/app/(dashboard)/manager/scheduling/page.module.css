@@ -1,0 +1,210 @@
+.container { padding: 30px; }
+
+.pageHeader { margin-bottom: 20px; }
+.pageTitle { font-size: 22px; font-weight: 700; color: var(--header-text); margin-bottom: 4px; }
+.pageDesc { font-size: 14px; color: var(--body-text-muted); }
+
+/* Controls bar */
+.controlsBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.viewTabs {
+  display: flex;
+  gap: 8px;
+}
+
+.tabBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid var(--card-border);
+  background-color: var(--card-bg);
+  color: var(--body-text-muted);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tabActive {
+  background-color: #7239ea;
+  color: white;
+  border-color: #7239ea;
+}
+
+.weekNav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.weekLabel {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--header-text);
+}
+
+.navArrow {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid var(--card-border);
+  background: var(--card-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--body-text-muted);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.navArrow:hover { background: var(--body-bg); color: var(--header-text); }
+
+/* Toast */
+.toast {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: white;
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 13px;
+  color: var(--body-text);
+  margin-bottom: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+.toastClose {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--body-text-muted);
+  display: flex;
+  margin-left: 6px;
+}
+
+/* Calendar card */
+.calendarCard {
+  overflow: hidden;
+  padding: 0;
+}
+
+.calGrid {
+  display: flex;
+  overflow-x: auto;
+}
+
+/* Time column */
+.timeCol {
+  flex-shrink: 0;
+  width: 70px;
+  border-right: 1px solid var(--card-border);
+}
+
+.cornerCell {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--body-text-muted);
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.timeCell {
+  height: 60px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 6px;
+  font-size: 10px;
+  color: var(--body-text-muted);
+  border-bottom: 1px solid var(--card-border);
+}
+
+/* Day columns */
+.dayCol {
+  flex: 1;
+  min-width: 180px;
+  border-right: 1px solid var(--card-border);
+}
+
+.dayCol:last-child { border-right: none; }
+
+.dayHeader {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--body-text-muted);
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--card-border);
+  background-color: var(--body-bg);
+}
+
+.dayBody {
+  position: relative;
+  height: calc(var(--num-hours) * var(--cell-h));
+}
+
+.hourLine {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-color: var(--card-border);
+}
+
+/* Order blocks */
+.orderBlock {
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  border-radius: 6px;
+  padding: 8px 10px;
+  cursor: pointer;
+  transition: filter 0.15s;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow: hidden;
+}
+
+.orderBlock:hover {
+  filter: brightness(0.95);
+}
+
+.blockId {
+  font-size: 11px;
+  font-weight: 700;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.blockSub {
+  font-size: 10px;
+  opacity: 0.85;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Crew view */
+.crewName {
+  font-size: 13px;
+  color: var(--header-text);
+}

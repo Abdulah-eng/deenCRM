@@ -1,0 +1,135 @@
+.container {
+  padding: 30px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.description {
+  color: var(--body-text-muted);
+  font-size: 14px;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.statContent {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.statIcon {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.statValue {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--header-text);
+  margin-bottom: 4px;
+}
+
+.statLabel {
+  font-size: 13px;
+  color: var(--body-text-muted);
+}
+
+.tableHeader {
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.tableTitle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--header-text);
+}
+
+.orderId {
+  font-size: 12px;
+  color: var(--body-text-muted);
+  font-family: monospace;
+}
+
+.customer {
+  font-size: 13px;
+  color: var(--header-text);
+}
+
+.typeBadge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.typeBadge[data-type="HEATING"] {
+  background-color: rgba(241, 65, 108, 0.1);
+  color: #f1416c;
+}
+
+.typeBadge[data-type="SCREED"] {
+  background-color: rgba(255, 199, 0, 0.1);
+  color: #d16b11;
+}
+
+.typeBadge[data-type="ELECTRICAL"] {
+  background-color: rgba(0, 158, 247, 0.1);
+  color: #009ef7;
+}
+
+.currencyText {
+  font-size: 13px;
+  font-weight: 500;
+  color: #5e6278;
+}
+
+.variance {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.variance[data-positive="true"] {
+  color: #50cd89;
+}
+
+.variance[data-positive="false"] {
+  color: #f1416c;
+}
+
+.actionBtn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(241, 65, 108, 0.1);
+  transition: all 0.2s;
+  border: none;
+  cursor: pointer;
+}
+
+.actionBtn:hover {
+  background-color: rgba(241, 65, 108, 0.2);
+}

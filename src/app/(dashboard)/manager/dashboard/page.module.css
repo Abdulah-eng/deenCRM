@@ -1,0 +1,74 @@
+.container { padding: 30px; }
+
+.welcome { margin-bottom: 28px; }
+.welcome h2 { font-size: 22px; font-weight: 700; color: var(--header-text); margin-bottom: 4px; }
+.welcome p { font-size: 14px; color: var(--body-text-muted); }
+.dateChip {
+  display: inline-block;
+  margin-top: 10px;
+  font-size: 12px;
+  font-weight: 500;
+  background-color: rgba(114,57,234,0.08);
+  color: #7239ea;
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+/* KPI */
+.kpiGrid { display: grid; grid-template-columns: repeat(4,1fr); gap: 20px; margin-bottom: 24px; }
+.kpiCard { display: flex; align-items: center; gap: 18px; padding: 22px; }
+.kpiIcon { width: 50px; height: 50px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.kpiVal { font-size: 26px; font-weight: 700; color: var(--header-text); }
+.kpiLabel { font-size: 13px; color: var(--body-text-muted); margin-top: 2px; }
+.kpiSub { font-size: 12px; font-weight: 500; margin-top: 2px; display: block; }
+
+/* Two-col main */
+.mainGrid { display: grid; grid-template-columns: 1fr 340px; gap: 24px; }
+.leftCol { display: flex; flex-direction: column; }
+.rightCol { display: flex; flex-direction: column; }
+
+/* Card helpers */
+.cardHeader { padding: 16px 24px; border-bottom: 1px solid var(--card-border); display: flex; justify-content: space-between; align-items: center; }
+.cardTitle { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: var(--header-text); }
+.viewAll { font-size: 12px; color: #7239ea; cursor: pointer; font-weight: 500; }
+
+/* Table */
+.table { width: 100%; border-collapse: collapse; }
+.table th { padding: 10px 16px; font-size: 11px; font-weight: 600; color: var(--body-text-muted); text-align: left; letter-spacing: 0.4px; border-bottom: 1px solid var(--card-border); }
+.table td { padding: 12px 16px; border-bottom: 1px solid var(--card-border); font-size: 13px; }
+.table tr:last-child td { border-bottom: none; }
+
+.ordId { font-size: 12px; color: #7239ea; font-family: monospace; font-weight: 600; }
+.customer { color: var(--header-text); font-weight: 500; }
+.crew { color: var(--body-text-muted); font-size: 12px; }
+.typeBadge { font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 4px; }
+.statusBadge { font-size: 10px; font-weight: 700; padding: 4px 8px; border-radius: 4px; white-space: nowrap; }
+.eyeBtn { width: 28px; height: 28px; border-radius: 6px; background: rgba(0,158,247,0.08); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+/* Bar chart */
+.barChart { display: flex; align-items: flex-end; justify-content: space-around; padding: 20px 24px 16px; height: 140px; }
+.barCol { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; }
+.barVal { font-size: 11px; font-weight: 600; color: var(--header-text); }
+.barTrack { width: 32px; background-color: var(--body-bg); border-radius: 4px; height: 80px; display: flex; align-items: flex-end; overflow: hidden; }
+.barFill { width: 100%; background: linear-gradient(180deg, #7239ea, #a855f7); border-radius: 4px; transition: height 0.4s; }
+.barLabel { font-size: 11px; color: var(--body-text-muted); }
+
+/* Crew list */
+.crewList { padding: 8px 0; }
+.crewRow { display: flex; align-items: center; gap: 12px; padding: 12px 20px; transition: background 0.15s; }
+.crewRow:hover { background-color: var(--body-bg); }
+.crewAvatar { width: 34px; height: 34px; border-radius: 8px; background: linear-gradient(135deg,#7239ea,#a855f7); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex-shrink: 0; }
+.crewInfo { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.crewName { font-size: 13px; font-weight: 600; color: var(--header-text); }
+.crewRole { font-size: 11px; color: var(--body-text-muted); font-weight: 400; }
+.crewOrder { font-size: 11px; color: var(--body-text-muted); }
+.crewStatus { font-size: 11px; font-weight: 600; display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+.crewDot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+
+/* Capacity donut */
+.capacityRow { display: flex; align-items: center; gap: 24px; }
+.capDonut { width: 110px; height: 110px; transform: rotate(-90deg); flex-shrink: 0; }
+.capInfo { display: flex; flex-direction: column; gap: 8px; }
+.capItem { font-size: 13px; color: var(--body-text); display: flex; align-items: center; gap: 8px; }
+.capDot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.capNote { font-size: 12px; color: var(--body-text-muted); margin-top: 4px; }

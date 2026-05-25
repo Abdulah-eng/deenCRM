@@ -1,0 +1,175 @@
+.container {
+  padding: 30px;
+}
+
+.header {
+  margin-bottom: 24px;
+}
+
+.description {
+  color: var(--body-text-muted);
+  font-size: 14px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+}
+
+.cardHeader {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--card-border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--header-text);
+}
+
+.cardBody {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.formGroup label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--body-text-muted);
+}
+
+.input {
+  width: 100%;
+  height: 40px;
+  background-color: var(--body-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+  padding: 0 12px;
+  font-size: 13px;
+  color: var(--body-text);
+  outline: none;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.input:focus {
+  border-color: var(--primary);
+  background-color: white;
+}
+
+.checkboxGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--body-text);
+  cursor: pointer;
+}
+
+.calcBtn {
+  margin-top: 20px;
+  width: 100%;
+  justify-content: center;
+  background-color: #009ef7; /* Custom blue from design */
+}
+
+/* Info Cards */
+.infoCol {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.infoCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px dashed;
+}
+
+.infoIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.infoContent h4 {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.infoContent p {
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* BAFA */
+.infoBafa {
+  background-color: rgba(80, 205, 137, 0.05);
+  border-color: rgba(80, 205, 137, 0.4);
+}
+.infoBafa .infoIcon {
+  background-color: rgba(80, 205, 137, 0.1);
+  color: #50cd89;
+}
+.infoBafa h4 { color: #1e1e2d; }
+.infoBafa p { color: var(--body-text-muted); }
+
+/* KfW */
+.infoKfw {
+  background-color: rgba(0, 158, 247, 0.05);
+  border-color: rgba(0, 158, 247, 0.4);
+}
+.infoKfw .infoIcon {
+  background-color: rgba(0, 158, 247, 0.1);
+  color: #009ef7;
+}
+
+/* State */
+.infoState {
+  background-color: rgba(255, 199, 0, 0.05);
+  border-color: rgba(255, 199, 0, 0.4);
+}
+.infoState .infoIcon {
+  background-color: rgba(255, 199, 0, 0.1);
+  color: #ffc700;
+}
+
+/* Bonus */
+.infoBonus {
+  background-color: rgba(114, 57, 234, 0.05);
+  border-color: rgba(114, 57, 234, 0.4);
+}
+.infoBonus .infoIcon {
+  background-color: rgba(114, 57, 234, 0.1);
+  color: #7239ea;
+}

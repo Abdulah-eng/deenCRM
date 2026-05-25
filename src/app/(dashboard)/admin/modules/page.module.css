@@ -1,0 +1,112 @@
+.container {
+  padding: 30px;
+}
+
+.header {
+  margin-bottom: 32px;
+}
+
+.header h2 {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--header-text);
+  margin-bottom: 6px;
+}
+
+.description {
+  font-size: 14px;
+  color: var(--body-text-muted);
+}
+
+/* Sections */
+.section {
+  margin-bottom: 40px;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.sectionHeader h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--header-text);
+}
+
+.sectionBadge {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--body-text-muted);
+  background-color: var(--body-bg);
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+.modulesGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+/* Module Card */
+.moduleCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 20px;
+  border-radius: 10px;
+  border: 1px solid var(--card-border);
+  background-color: var(--card-bg);
+  transition: all 0.2s;
+}
+
+.moduleCardOn {
+  border-color: rgba(114, 57, 234, 0.2);
+  background-color: rgba(114, 57, 234, 0.02);
+}
+
+.moduleCardOff {
+  opacity: 0.6;
+}
+
+.moduleIcon {
+  flex-shrink: 0;
+  margin-top: 2px;
+  transition: color 0.2s;
+}
+
+.moduleBody {
+  flex: 1;
+}
+
+.moduleLabel {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--header-text);
+  margin-bottom: 4px;
+}
+
+.moduleDesc {
+  font-size: 12px;
+  color: var(--body-text-muted);
+  line-height: 1.5;
+}
+
+.toggleBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  margin-top: 2px;
+  transition: transform 0.15s;
+}
+
+.toggleBtn:hover {
+  transform: scale(1.1);
+}

@@ -1,0 +1,229 @@
+.container {
+  padding: 30px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 24px;
+}
+
+.pageTitle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--header-text);
+  margin-bottom: 4px;
+}
+
+.description {
+  color: var(--body-text-muted);
+  font-size: 14px;
+}
+
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.monthText {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--body-text);
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.statCard {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  box-shadow: 0 0 20px 0 rgba(76, 87, 125, 0.02);
+}
+
+.statIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.statValue {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--header-text);
+  margin-bottom: 4px;
+}
+
+.statTitle {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--body-text);
+  margin-bottom: 4px;
+}
+
+.statSubtext {
+  font-size: 11px;
+  color: var(--body-text-muted);
+}
+
+.chartsGrid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+}
+
+.chartHeader {
+  padding: 20px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.chartHeader h3 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--header-text);
+}
+
+.chartLegend {
+  display: flex;
+  gap: 16px;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--body-text-muted);
+}
+
+.legendColor {
+  display: inline-block;
+  width: 24px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+.barChartContainer {
+  padding: 0 24px 24px;
+  display: flex;
+  height: 350px;
+}
+
+.yAxis {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding-bottom: 30px;
+  padding-right: 16px;
+  font-size: 11px;
+  color: var(--body-text-muted);
+  text-align: right;
+  border-right: 1px dashed var(--card-border);
+}
+
+.chartArea {
+  flex-grow: 1;
+  position: relative;
+  display: flex;
+  justify-content: space-around;
+  padding-top: 20px;
+}
+
+.lineOverlay {
+  position: absolute;
+  top: 20px;
+  left: 0;
+  width: 100%;
+  height: calc(100% - 50px);
+  z-index: 10;
+  pointer-events: none;
+}
+
+.barGroup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  width: 60px;
+}
+
+.bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  flex-grow: 1;
+  width: 100%;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.bar {
+  flex: 1;
+  border-radius: 4px 4px 0 0;
+  min-height: 2px;
+}
+
+.xAxisLabel {
+  margin-top: 12px;
+  font-size: 11px;
+  color: var(--body-text-muted);
+}
+
+.donutChartContainer {
+  padding: 0 24px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 350px;
+}
+
+.donutChart {
+  width: 220px;
+  height: 220px;
+  margin-bottom: 20px;
+}
+
+.donutSvg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.donutLegend {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.legendRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--body-text-muted);
+}
+
+.legendRow strong {
+  color: var(--header-text);
+  font-weight: 600;
+}

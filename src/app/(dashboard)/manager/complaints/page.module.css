@@ -1,0 +1,258 @@
+.container {
+  padding: 30px;
+}
+
+/* Warning Banner */
+.warningBanner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: rgba(255, 199, 0, 0.08);
+  border: 1px solid rgba(255, 199, 0, 0.35);
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin-bottom: 24px;
+  font-size: 13px;
+  color: #7a5b00;
+}
+
+/* Table header */
+.tableHeader {
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--card-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.tableTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--header-text);
+}
+
+.tableActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.searchBox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: var(--body-bg);
+  border-radius: 6px;
+  padding: 8px 12px;
+  width: 220px;
+}
+
+.searchBox input {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 12px;
+  color: var(--body-text);
+  width: 100%;
+  font-family: inherit;
+}
+
+.newBtn {
+  background-color: #f1416c;
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+}
+
+/* Table cells */
+.cmpId {
+  font-size: 12px;
+  font-weight: 700;
+  color: #f1416c;
+  font-family: monospace;
+}
+
+.ordRef {
+  font-size: 12px;
+  color: #7239ea;
+  font-family: monospace;
+}
+
+.customer {
+  font-size: 13px;
+  color: var(--header-text);
+}
+
+.typeBadge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.typeBadge[data-type="SCREED"] {
+  background-color: rgba(255, 199, 0, 0.12);
+  color: #d16b11;
+}
+
+.typeBadge[data-type="HEATING"] {
+  background-color: rgba(241, 65, 108, 0.12);
+  color: #f1416c;
+}
+
+.typeBadge[data-type="ELECTRICAL"] {
+  background-color: rgba(0, 158, 247, 0.12);
+  color: #009ef7;
+}
+
+.issue {
+  font-size: 12px;
+  color: var(--body-text-muted);
+  max-width: 220px;
+  display: block;
+}
+
+.crew {
+  font-size: 12px;
+  font-weight: 500;
+  color: #7239ea;
+}
+
+.date {
+  font-size: 12px;
+  color: var(--body-text-muted);
+}
+
+.statusBadge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.costImpact {
+  font-size: 13px;
+  color: #f1416c;
+}
+
+.actions {
+  display: flex;
+  gap: 6px;
+}
+
+.actionBtn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--body-bg);
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.actionBtn:hover {
+  background-color: var(--card-border);
+}
+
+/* Delete Modal */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+}
+
+.modal {
+  background-color: var(--card-bg);
+  border-radius: 14px;
+  padding: 40px 36px;
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+}
+
+.modalIcon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background-color: rgba(241, 65, 108, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+}
+
+.modalTitle {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--header-text);
+  margin-bottom: 12px;
+}
+
+.modalDesc {
+  font-size: 14px;
+  color: var(--body-text);
+  margin-bottom: 6px;
+}
+
+.modalWarn {
+  font-size: 13px;
+  color: #f1416c;
+  margin-bottom: 28px;
+}
+
+.modalBtns {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.cancelBtn {
+  display: flex;
+  align-items: center;
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid var(--card-border);
+  background: none;
+  color: var(--body-text);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cancelBtn:hover {
+  background-color: var(--body-bg);
+}
+
+.deleteBtn {
+  display: flex;
+  align-items: center;
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  background-color: #f1416c;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.deleteBtn:hover {
+  background-color: #d4305a;
+}

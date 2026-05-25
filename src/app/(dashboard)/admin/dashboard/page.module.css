@@ -1,0 +1,181 @@
+.container {
+  padding: 30px;
+}
+
+.welcome {
+  margin-bottom: 28px;
+}
+
+.welcome h2 {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--header-text);
+  margin-bottom: 4px;
+}
+
+.welcome p {
+  font-size: 14px;
+  color: var(--body-text-muted);
+}
+
+/* KPI Cards */
+.kpiGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.kpiCard {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 24px;
+}
+
+.kpiIcon {
+  width: 52px;
+  height: 52px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.kpiBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.kpiValue {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--header-text);
+}
+
+.kpiLabel {
+  font-size: 13px;
+  color: var(--body-text-muted);
+}
+
+.kpiTrend {
+  font-size: 12px;
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+/* Charts Row */
+.chartsRow {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 24px;
+}
+
+.lineChartCard {
+  padding: 24px;
+}
+
+.donutCard {
+  padding: 24px;
+}
+
+.chartHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.chartHeader h3 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--header-text);
+}
+
+.chartControls {
+  display: flex;
+  gap: 4px;
+  background-color: var(--body-bg);
+  border-radius: 6px;
+  padding: 3px;
+}
+
+.controlBtn {
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--body-text-muted);
+  transition: all 0.2s;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.controlBtnActive {
+  background-color: var(--primary);
+  color: white;
+}
+
+.chartLegend {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 12px;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--body-text-muted);
+}
+
+.legendDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.svgWrapper {
+  width: 100%;
+  height: 260px;
+}
+
+/* Donut */
+.donutWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  margin-top: 16px;
+}
+
+.donutSvg {
+  width: 180px;
+  height: 180px;
+  transform: rotate(-90deg);
+}
+
+.donutLabels {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.donutLabelItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--body-text);
+}
+
+.donutLabelItem strong {
+  margin-left: auto;
+  color: var(--header-text);
+}
