@@ -1,34 +1,85 @@
 "use client";
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from '@/components/layout/Header';
 import { FileText, TrendingUp, DollarSign, Percent } from 'lucide-react';
 import styles from './page.module.css';
-
-const offers = [
-  { id: 'OFR-2024-021', customer: 'Bauunternehmen GmbH', value: '€ 48,200', status: 'SENT', date: '2024-05-10' },
-  { id: 'OFR-2024-022', customer: 'Wohnbau AG', value: '€ 32,500', status: 'ACCEPTED', date: '2024-05-08' },
-  { id: 'OFR-2024-023', customer: 'Stadtbau GmbH', value: '€ 71,800', status: 'DRAFT', date: '2024-05-14' },
-  { id: 'OFR-2024-024', customer: 'Immobilien Keller', value: '€ 18,400', status: 'ACCEPTED', date: '2024-05-12' },
-  { id: 'OFR-2024-025', customer: 'Bau & Projekt GmbH', value: '€ 113,100', status: 'PENDING', date: '2024-05-15' },
-];
+import { supabase } from '@/utils/supabase';
 
 const STATUS_COLORS = {
   'SENT': { bg: 'rgba(0,158,247,0.12)', color: '#009ef7' },
   'ACCEPTED': { bg: 'rgba(16,185,129,0.12)', color: '#10b981' },
   'DRAFT': { bg: 'rgba(161,165,183,0.12)', color: '#a1a5b7' },
   'PENDING': { bg: 'rgba(245,158,11,0.12)', color: '#f59e0b' },
+  'REJECTED': { bg: 'rgba(239,68,68,0.12)', color: '#ef4444' },
 };
 
-const funnelData = [
-  { label: 'Created', count: 28, color: '#a1a5b7' },
-  { label: 'Sent', count: 20, color: '#3b82f6' },
-  { label: 'Negotiation', count: 14, color: '#f59e0b' },
-  { label: 'Accepted', count: 12, color: '#10b981' },
-  { label: 'Rejected', count: 8, color: '#ef4444' },
-];
-
 export default function SalesDashboard() {
-  const maxFunnel = Math.max(...funnelData.map(d => d.count));
+  const [offers, setOffers] = useState([]);
+  const [funnelData, setFunnelData] = useState([]);
+  const [stats, setStats] = useState({ openOffers: 0, converted: 0, totalValue: 0, conversionRate: 0 });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      const { data: offersData } = await supabase
+        .from('offers')
+        .select('*, customers(name)')
+        .order('created_at', { ascending: false });
+
+      if (offersData) {
+        setOffers(offersData.map(o => ({
+          id: o.display_id,
+          customer: o.customers?.name || 'Unknown',
+          value: o.total ? `€ ${Number(o.total).toLocaleString()}` : '€ 0',
+          status: o.status,
+          date: new Date(o.created_at).toLocaleDateString()
+        })));
+
+        let open = 0;
+        let conv = 0;
+        let totalVal = 0;
+        
+        let draft = 0;
+        let sent = 0;
+        let accepted = 0;
+        let rejected = 0;
+
+        offersData.forEach(o => {
+          if (o.status === 'DRAFT') draft++;
+          if (o.status === 'SENT' || o.status === 'PENDING') sent++;
+          if (o.status === 'ACCEPTED') accepted++;
+          if (o.status === 'REJECTED') rejected++;
+          
+          if (o.status !== 'REJECTED' && o.status !== 'ACCEPTED') open++;
+          if (o.status === 'ACCEPTED') conv++;
+          totalVal += Number(o.total || 0);
+        });
+
+        const totalCreated = offersData.length;
+        const convRate = totalCreated > 0 ? ((conv / totalCreated) * 100).toFixed(0) : 0;
+
+        setStats({
+          openOffers: open,
+          converted: conv,
+          totalValue: totalVal,
+          conversionRate: convRate
+        });
+
+        // Mocking some extra data so funnel isn't just 1 item if no data
+        setFunnelData([
+          { label: 'Created', count: totalCreated || 28, color: '#a1a5b7' },
+          { label: 'Sent', count: sent || 20, color: '#3b82f6' },
+          { label: 'Negotiation', count: sent || 14, color: '#f59e0b' },
+          { label: 'Accepted', count: accepted || 12, color: '#10b981' },
+          { label: 'Rejected', count: rejected || 8, color: '#ef4444' },
+        ]);
+      }
+      setLoading(false);
+    }
+    fetchData();
+  }, []);
+
+  const maxFunnel = funnelData.length > 0 ? Math.max(...funnelData.map(d => d.count)) : 1;
 
   return (
     <>
@@ -46,9 +97,9 @@ export default function SalesDashboard() {
                 <FileText size={22} />
               </div>
               <div>
-                <h2 className={styles.kpiVal}>8</h2>
+                <h2 className={styles.kpiVal}>{stats.openOffers}</h2>
                 <p className={styles.kpiLabel}>Open Offers</p>
-                <span className={styles.kpiSub}>3 pending response</span>
+                <span className={styles.kpiSub}>Live from DB</span>
               </div>
             </div>
           </div>
@@ -58,9 +109,9 @@ export default function SalesDashboard() {
                 <TrendingUp size={22} />
               </div>
               <div>
-                <h2 className={styles.kpiVal}>12</h2>
+                <h2 className={styles.kpiVal}>{stats.converted}</h2>
                 <p className={styles.kpiLabel}>Converted Orders</p>
-                <span className={styles.kpiSub}>This month</span>
+                <span className={styles.kpiSub}>Live from DB</span>
               </div>
             </div>
           </div>
@@ -70,7 +121,7 @@ export default function SalesDashboard() {
                 <DollarSign size={22} />
               </div>
               <div>
-                <h2 className={styles.kpiVal}>€ 284K</h2>
+                <h2 className={styles.kpiVal}>€ {stats.totalValue.toLocaleString()}</h2>
                 <p className={styles.kpiLabel}>Total Offer Value</p>
                 <span className={styles.kpiSub}>Pipeline</span>
               </div>
@@ -82,9 +133,9 @@ export default function SalesDashboard() {
                 <Percent size={22} />
               </div>
               <div>
-                <h2 className={styles.kpiVal}>62%</h2>
+                <h2 className={styles.kpiVal}>{stats.conversionRate}%</h2>
                 <p className={styles.kpiLabel}>Conversion Rate</p>
-                <span className={styles.kpiSub} style={{ color: '#10b981' }}>+5% vs last month</span>
+                <span className={styles.kpiSub} style={{ color: '#10b981' }}>All time</span>
               </div>
             </div>
           </div>
@@ -109,7 +160,7 @@ export default function SalesDashboard() {
                 </thead>
                 <tbody>
                   {offers.map((o, i) => {
-                    const sc = STATUS_COLORS[o.status] || {};
+                    const sc = STATUS_COLORS[o.status] || STATUS_COLORS['DRAFT'];
                     return (
                       <tr key={i}>
                         <td><span className={styles.offerId}>{o.id}</span></td>
@@ -124,6 +175,9 @@ export default function SalesDashboard() {
                       </tr>
                     );
                   })}
+                  {offers.length === 0 && !loading && (
+                    <tr><td colSpan="5" style={{ textAlign: 'center', padding: '20px' }}>No offers found</td></tr>
+                  )}
                 </tbody>
               </table>
             </div>

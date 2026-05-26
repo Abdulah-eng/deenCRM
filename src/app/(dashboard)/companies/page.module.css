@@ -1,0 +1,230 @@
+.container {
+  padding: 24px;
+}
+
+.pageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-color);
+  margin: 0 0 4px 0;
+}
+
+.desc {
+  font-size: 13px;
+  color: var(--body-text-muted);
+  margin: 0;
+}
+
+.companyGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.companyCard {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.cardHeader {
+  height: 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  gap: 12px;
+}
+
+.companyIcon {
+  width: 48px;
+  height: 48px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.companyName {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.cardBody {
+  padding: 24px;
+}
+
+.invoiceBlockRow {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.invoiceBlock {
+  flex: 1;
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 12px;
+  text-align: center;
+}
+
+.invoiceBlock h4 {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0 0 4px 0;
+}
+
+.invoiceBlock span {
+  font-size: 11px;
+  color: var(--body-text-muted);
+  text-transform: uppercase;
+}
+
+.statRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px dashed #e4e6ef;
+  font-size: 13px;
+}
+
+.statRow:last-child {
+  border-bottom: none;
+}
+
+.statLabel {
+  color: var(--body-text-muted);
+}
+
+.statValue {
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.cardFooter {
+  padding: 16px 24px;
+  border-top: 1px solid #e4e6ef;
+  display: flex;
+  gap: 12px;
+}
+
+.footerBtn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 36px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  transition: all 0.2s;
+}
+
+.footerBtn:hover {
+  background: #f8f9fa;
+}
+
+.editBtn {
+  color: var(--text-color);
+}
+
+.settingsBtn {
+  color: var(--primary);
+  background: rgba(114,57,234,0.05);
+}
+
+.settingsBtn:hover {
+  background: rgba(114,57,234,0.1);
+}
+
+.logoSettingsCard {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  padding: 24px;
+}
+
+.logoSettingsHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 24px;
+  color: var(--text-color);
+}
+
+.logoSettingsBody {
+  display: flex;
+  gap: 32px;
+}
+
+.logoPreview {
+  width: 200px;
+  height: 120px;
+  border: 1px dashed #e4e6ef;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--body-text-muted);
+  font-size: 13px;
+}
+
+.logoUpload {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.logoUpload h4 {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.uploadRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+  border: 1px solid #e4e6ef;
+  border-radius: 6px;
+}
+
+.browseBtn {
+  background: #f8f9fa;
+  border: 1px solid #e4e6ef;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.fileName {
+  font-size: 13px;
+  color: var(--body-text-muted);
+}
+
+.uploadHint {
+  font-size: 12px;
+  color: var(--body-text-muted);
+}

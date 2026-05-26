@@ -282,3 +282,24 @@
   color: var(--body-text);
 }
 
+.sectionTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--header-text);
+  margin-top: 12px;
+  border-bottom: 1px solid var(--card-border);
+  padding-bottom: 8px;
+}
+
+.subTasksList {
+  display: flex;
+  flex-direction: column;
+}
+
+.subTaskRow {
+  background-color: rgba(0,0,0,0.02);
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+  padding: 8px;
+}
+

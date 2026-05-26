@@ -1,43 +1,67 @@
 "use client";
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from '@/components/layout/Header';
 import { MapPin, Clock, CalendarDays, CheckCircle2, TrendingUp, Grid, Info, BarChart2 } from 'lucide-react';
 import styles from './page.module.css';
-
-const assignments = [
-  {
-    id: 'ORD-2024-058',
-    customer: 'Bauunternehmen GmbH',
-    task: 'Screed — Anhydrite CA-F5',
-    address: 'Musterstraße 15, 80331 Munich',
-    area: '480 m²',
-    time: '07:00 - 16:00',
-    status: 'IN PROGRESS',
-    color: '#f97316'
-  },
-  {
-    id: 'ORD-2024-060',
-    customer: 'Stadtbau GmbH',
-    task: 'Screed — Cement CT-C20',
-    address: 'Hauptstraße 22, 86150 Augsburg',
-    area: '320 m²',
-    time: '11:00 - 18:00',
-    status: 'SCHEDULED',
-    color: '#f59e0b'
-  },
-  {
-    id: 'ORD-2024-062',
-    customer: 'Bau & Projekt GmbH',
-    task: 'Screed — Anhydrite CA-F5',
-    address: 'Bahnhofstr. 5, 80335 Munich',
-    area: '480 m²',
-    time: 'Tomorrow 07:00',
-    status: 'TOMORROW',
-    color: '#3b82f6'
-  }
-];
+import { supabase } from '@/utils/supabase';
 
 export default function MyDashboard() {
+  const [assignments, setAssignments] = useState([]);
+  const [crewInfo, setCrewInfo] = useState({ name: 'Loading...', spec: '...', size: 0 });
+  const [stats, setStats] = useState({ todayOrders: 0, todayProgress: 0 });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      // Fetch a crew (using the first one for demo)
+      const { data: crews } = await supabase.from('crews').select('*').limit(1);
+      let myCrew = null;
+
+      if (crews && crews.length > 0) {
+        myCrew = crews[0];
+        setCrewInfo({
+          name: myCrew.name,
+          spec: myCrew.specialization,
+          size: 4 // Mock size
+        });
+
+        // Fetch orders assigned to this crew
+        const { data: ordersData } = await supabase
+          .from('orders')
+          .select('*, customers(name), customers(address)')
+          .eq('crew_id', myCrew.id)
+          .order('created_at', { ascending: false });
+
+        if (ordersData) {
+          let todayO = 0;
+          let todayP = 0;
+
+          setAssignments(ordersData.map(o => {
+            const isTomorrow = o.status === 'SCHEDULED';
+            if (!isTomorrow) {
+              todayO++;
+              if (o.status === 'IN PROGRESS') todayP++;
+            }
+            return {
+              id: o.display_id,
+              customer: o.customers?.name || 'Unknown',
+              task: `${o.type} Works`,
+              address: o.customers?.address || 'No address',
+              area: 'n/a m²', // would come from order details
+              time: isTomorrow ? 'Tomorrow 07:00' : 'Today 08:00',
+              status: isTomorrow ? 'TOMORROW' : o.status,
+              color: isTomorrow ? '#3b82f6' : (o.status === 'IN PROGRESS' ? '#f97316' : '#10b981')
+            };
+          }));
+
+          setStats({ todayOrders: todayO, todayProgress: todayP });
+        }
+      }
+      setLoading(false);
+    }
+    fetchData();
+  }, []);
+
   return (
     <>
       <Header title="My Dashboard" subtitle="My Dashboard" />
@@ -46,7 +70,7 @@ export default function MyDashboard() {
         <div className={styles.welcomeSection}>
           <div className={styles.welcomeText}>
             <h1>Good Morning, Klaus! 👷‍♂️</h1>
-            <p>Here are your assignments for today — Monday, 18 May 2026</p>
+            <p>Here are your assignments for today — {new Date().toLocaleDateString()}</p>
           </div>
           <button className="btn btn-primary" style={{ backgroundColor: '#f97316', borderColor: '#f97316' }}>
             <CheckCircle2 size={16} style={{ marginRight: 6 }} /> Update Status
@@ -56,11 +80,11 @@ export default function MyDashboard() {
         <div className={styles.kpiGrid}>
           <div className="card"><div className={styles.kpiCard}>
             <div className={styles.kpiIcon} style={{ background: 'rgba(249,115,22,0.1)', color: '#f97316' }}><CalendarDays size={20} /></div>
-            <div><h2 className={styles.kpiVal}>3</h2><p className={styles.kpiLabel}>Orders Today</p><p className={styles.kpiSub}>2 in progress</p></div>
+            <div><h2 className={styles.kpiVal}>{stats.todayOrders}</h2><p className={styles.kpiLabel}>Orders Today</p><p className={styles.kpiSub}>{stats.todayProgress} in progress</p></div>
           </div></div>
           <div className="card"><div className={styles.kpiCard}>
             <div className={styles.kpiIcon} style={{ background: 'rgba(16,185,129,0.1)', color: '#10b981' }}><Grid size={20} /></div>
-            <div><h2 className={styles.kpiVal}>1,280</h2><p className={styles.kpiLabel}>m² Today</p><p className={styles.kpiSub}>on 3 sites</p></div>
+            <div><h2 className={styles.kpiVal}>1,280</h2><p className={styles.kpiLabel}>m² Today</p><p className={styles.kpiSub}>on {stats.todayOrders} sites</p></div>
           </div></div>
           <div className="card"><div className={styles.kpiCard}>
             <div className={styles.kpiIcon} style={{ background: 'rgba(59,130,246,0.1)', color: '#3b82f6' }}><TrendingUp size={20} /></div>
@@ -79,6 +103,8 @@ export default function MyDashboard() {
                 <CalendarDays size={18} /> Today's Assignments
               </div>
               <div className={styles.assignmentList}>
+                {loading ? <p>Loading assignments...</p> : null}
+                {!loading && assignments.length === 0 ? <p>No assignments for your team.</p> : null}
                 {assignments.map(a => (
                   <div key={a.id} className={styles.assignmentCard} style={{ borderLeftColor: a.color }}>
                     <div className={styles.assignmentHeader}>
@@ -110,10 +136,10 @@ export default function MyDashboard() {
                 <Info size={18} /> Quick Info
               </div>
               <div className={styles.infoList}>
-                <div className={styles.infoRow}><span>My Team</span><strong>Team Alpha</strong></div>
-                <div className={styles.infoRow}><span>Specialty</span><strong>Screed Works</strong></div>
-                <div className={styles.infoRow}><span>Team Size</span><strong>4 workers</strong></div>
-                <div className={styles.infoRow}><span>Orders This Month</span><strong>18</strong></div>
+                <div className={styles.infoRow}><span>My Team</span><strong>{crewInfo.name}</strong></div>
+                <div className={styles.infoRow}><span>Specialty</span><strong>{crewInfo.spec}</strong></div>
+                <div className={styles.infoRow}><span>Team Size</span><strong>{crewInfo.size} workers</strong></div>
+                <div className={styles.infoRow}><span>Orders This Month</span><strong>{assignments.length}</strong></div>
                 <div className={styles.infoRow}><span>m² This Month</span><strong>8,640</strong></div>
               </div>
             </div>

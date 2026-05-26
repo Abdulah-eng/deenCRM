@@ -1,11 +1,47 @@
 "use client";
 import React, { useState } from 'react';
 import Header from '@/components/layout/Header';
-import { Plus, X, List, Save, Send, Trash2 } from 'lucide-react';
+import { Plus, X, List, Save, Send, Trash2, Wand2 } from 'lucide-react';
 import styles from './page.module.css';
 
 export default function OffersQuotes() {
   const [showModal, setShowModal] = useState(true);
+  
+  // AI Generation State
+  const [projectDetails, setProjectDetails] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [offerItems, setOfferItems] = useState([]);
+  const [netTotal, setNetTotal] = useState(0);
+
+  const handleGenerateOffer = async () => {
+    if (!projectDetails) return;
+    setIsGenerating(true);
+    try {
+      const res = await fetch('/api/generate-offer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectDetails, type: 'Construction' })
+      });
+      const data = await res.json();
+      if (res.ok && data.items) {
+        setOfferItems(data.items);
+        setNetTotal(data.estimatedTotal || data.items.reduce((acc, item) => acc + (item.quantity * item.unitPrice), 0));
+      } else {
+        alert("Failed to generate offer: " + data.error);
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Error generating offer.");
+    }
+    setIsGenerating(false);
+  };
+
+  const removeItem = (index) => {
+    const newItems = [...offerItems];
+    newItems.splice(index, 1);
+    setOfferItems(newItems);
+    setNetTotal(newItems.reduce((acc, item) => acc + (item.quantity * item.unitPrice), 0));
+  };
 
   return (
     <>
@@ -22,9 +58,9 @@ export default function OffersQuotes() {
           </div>
         </div>
 
-        {/* The background table would be here, but for this design we focus on the modal overlay */}
+        {/* The background table */}
         <div className="card">
-          <div className="table-container" style={{ opacity: 0.5 }}>
+          <div className="table-container" style={{ opacity: showModal ? 0.5 : 1 }}>
             <table>
               <thead>
                 <tr>
@@ -43,7 +79,7 @@ export default function OffersQuotes() {
                   <td>Bauunternehmen GmbH</td>
                   <td>Heating Works</td>
                   <td>€ 38,400</td>
-                  <td><span className="badge badge-active">ACCEPTED</span></td>
+                  <td><span className="badge badge-active" style={{ backgroundColor: 'rgba(16,185,129,0.12)', color: '#10b981' }}>ACCEPTED</span></td>
                   <td>2024-05-25</td>
                   <td>--</td>
                 </tr>
@@ -52,7 +88,7 @@ export default function OffersQuotes() {
                   <td>Wohnbau AG</td>
                   <td>Screed Works</td>
                   <td>€ 32,500</td>
-                  <td><span className="badge" style={{ backgroundColor: '#009ef7', color: 'white' }}>SENT</span></td>
+                  <td><span className="badge" style={{ backgroundColor: 'rgba(0,158,247,0.12)', color: '#009ef7' }}>SENT</span></td>
                   <td>2024-05-23</td>
                   <td>--</td>
                 </tr>
@@ -107,50 +143,86 @@ export default function OffersQuotes() {
                 </div>
               </div>
 
+              {/* AI Generation Feature */}
+              <div style={{ backgroundColor: 'rgba(114,57,234,0.05)', padding: '16px', borderRadius: '8px', border: '1px dashed #7239ea', marginBottom: '24px', marginTop: '16px' }}>
+                <h4 style={{ margin: '0 0 12px 0', display: 'flex', alignItems: 'center', color: '#7239ea' }}>
+                  <Wand2 size={16} style={{ marginRight: 8 }} /> AI Offer Builder from Checklist
+                </h4>
+                <p style={{ margin: '0 0 12px 0', fontSize: '13px', color: '#5e6278' }}>
+                  Paste project notes, surveyor checklist, or requirements. Our AI will automatically suggest the necessary items, quantities, and prices for the offer.
+                </p>
+                <textarea 
+                  rows={3} 
+                  className={styles.input} 
+                  placeholder="e.g. Needs 150m2 of anhydrite screed, with 30m2 of underfloor heating..."
+                  value={projectDetails}
+                  onChange={e => setProjectDetails(e.target.value)}
+                  style={{ width: '100%', marginBottom: '12px' }}
+                />
+                <button 
+                  className="btn btn-primary" 
+                  style={{ backgroundColor: '#7239ea', width: '100%' }} 
+                  onClick={handleGenerateOffer}
+                  disabled={isGenerating || !projectDetails}
+                >
+                  {isGenerating ? 'Generating...' : '✨ Generate Line Items'}
+                </button>
+              </div>
+
               <div className={styles.servicesSection}>
-                <label className={styles.servicesLabel}><List size={14} /> Services (Drag & Drop)</label>
+                <label className={styles.servicesLabel}><List size={14} /> Line Items</label>
                 
-                <div className={styles.dragDropGrid}>
-                  <div className={styles.availableServices}>
-                    <div className={styles.serviceListHeader}>AVAILABLE SERVICES</div>
-                    <div className={styles.draggableItem}>
-                      Anhydrite Screed CA-F5 (per m²) — € 12.50
-                    </div>
-                    <div className={styles.draggableItem}>
-                      Cement Screed CT-C20 (per m²) — € 9.80
-                    </div>
-                    <div className={styles.draggableItem}>
-                      Underfloor Heating Pipe 16mm — € 2.40
-                    </div>
-                    <div className={styles.draggableItem}>
-                      Insulation Board EPS 35 (per m²) — € 4.80
-                    </div>
-                    <div className={styles.draggableItem}>
-                      Labour — Screed Laying — € 8.50/m²
-                    </div>
-                  </div>
-                  
+                {offerItems.length > 0 ? (
+                  <table style={{ width: '100%', textAlign: 'left', marginTop: '12px', borderCollapse: 'collapse' }}>
+                    <thead>
+                      <tr style={{ borderBottom: '1px solid #eee' }}>
+                        <th style={{ padding: '8px' }}>Description</th>
+                        <th style={{ padding: '8px' }}>Qty</th>
+                        <th style={{ padding: '8px' }}>Unit</th>
+                        <th style={{ padding: '8px' }}>Price</th>
+                        <th style={{ padding: '8px' }}>Total</th>
+                        <th></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {offerItems.map((item, idx) => (
+                        <tr key={idx} style={{ borderBottom: '1px solid #f5f5f5' }}>
+                          <td style={{ padding: '8px' }}>{item.description}</td>
+                          <td style={{ padding: '8px' }}>{item.quantity}</td>
+                          <td style={{ padding: '8px' }}>{item.unit}</td>
+                          <td style={{ padding: '8px' }}>€{Number(item.unitPrice).toFixed(2)}</td>
+                          <td style={{ padding: '8px' }}>€{(item.quantity * item.unitPrice).toFixed(2)}</td>
+                          <td style={{ padding: '8px' }}>
+                            <button onClick={() => removeItem(idx)} style={{ background: 'none', border: 'none', color: '#f1416c', cursor: 'pointer' }}>
+                              <Trash2 size={14} />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
                   <div className={styles.dropZone}>
                     <div className={styles.dropZoneEmpty}>
                       <List size={24} color="#a1a5b7" />
-                      <p>Drag services here to add to offer</p>
+                      <p>No items added yet. Use AI to generate or add manually.</p>
                     </div>
                   </div>
-                </div>
+                )}
               </div>
 
               <div className={styles.summarySection}>
                 <div className={styles.summaryRow}>
                   <span>Net Total:</span>
-                  <span>€ 0.00</span>
+                  <span>€ {netTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                 </div>
                 <div className={styles.summaryRow}>
                   <span>VAT (19%):</span>
-                  <span>€ 0.00</span>
+                  <span>€ {(netTotal * 0.19).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                 </div>
                 <div className={styles.summaryRowTotal}>
                   <span>Grand Total:</span>
-                  <span>€ 0.00</span>
+                  <span>€ {(netTotal * 1.19).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                 </div>
               </div>
             </div>

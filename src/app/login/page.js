@@ -1,30 +1,61 @@
 "use client";
 import React, { useState } from 'react';
-import { Building2, User, Users, Lock, ChevronDown, LogIn } from 'lucide-react';
+import { Building2, User, Users, Lock, LogIn, AlertCircle, ChevronDown } from 'lucide-react';
 import styles from './page.module.css';
 import { useRouter } from 'next/navigation';
+import { supabase } from '@/utils/supabase';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [role, setRole] = useState('Manager');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [company, setCompany] = useState('Electrical Works Southern Germany');
+  const [role, setRole] = useState('Manager');
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const roleRoutes = {
-    'Administrator': '/admin/dashboard',
-    'Admin': '/admin/dashboard',
-    'Manager': '/manager/dashboard',
-    'Sales Staff': '/sales/dashboard',
-    'Sales': '/sales/dashboard',
-    'Crew / Worker': '/crew/dashboard',
-    'Crew': '/crew/dashboard',
-    'Accountant / Finance': '/finance/actual-costs',
-    'Finance': '/finance/actual-costs'
+    'admin': '/admin/dashboard',
+    'manager': '/manager/dashboard',
+    'sales': '/sales/dashboard',
+    'crew': '/crew/dashboard',
+    'finance': '/finance/dashboard' // Changed from actual-costs to dashboard if we have it, else fallback
   };
 
-  const handleLogin = (e) => {
-    e.preventDefault();
-    const route = roleRoutes[role] || '/manager/dashboard';
-    router.push(route);
+  const handleLogin = async (e) => {
+    if (e) e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    try {
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (authError) throw authError;
+
+      // Fetch user profile to get role
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', data.user.id)
+        .single();
+
+      if (profileError) throw profileError;
+
+      const route = roleRoutes[profile.role] || '/manager/dashboard';
+      router.push(route);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const quickLogin = (testEmail) => {
+    setEmail(testEmail);
+    setPassword('password123');
   };
 
   return (
@@ -39,34 +70,34 @@ export default function LoginPage() {
         </div>
 
         <div className={styles.quickAccess}>
-          <p className={styles.dividerText}>QUICK ACCESS BY ROLE</p>
+          <p className={styles.dividerText}>TEST ACCOUNTS (CLICK TO AUTO-FILL)</p>
           <div className={styles.roleGrid}>
-            <button className={`${styles.roleBtn} ${role === 'Administrator' ? styles.roleBtnActive : ''}`} type="button" onClick={() => setRole('Administrator')}>
-              <div className={styles.roleIcon} style={role === 'Administrator' ? { borderColor: 'var(--primary)', color: 'var(--primary)' } : { borderColor: 'rgba(255,255,255,0.1)' }}>
+            <button className={`${styles.roleBtn} ${email === 'admin@procrm.com' ? styles.roleBtnActive : ''}`} type="button" onClick={() => quickLogin('admin@procrm.com')}>
+              <div className={styles.roleIcon} style={email === 'admin@procrm.com' ? { borderColor: 'var(--primary)', color: 'var(--primary)' } : { borderColor: 'rgba(255,255,255,0.1)' }}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
               </div>
               <span>Admin</span>
             </button>
-            <button className={`${styles.roleBtn} ${role === 'Manager' ? styles.roleBtnActive : ''}`} type="button" onClick={() => setRole('Manager')}>
-              <div className={styles.roleIcon} style={role === 'Manager' ? { borderColor: 'var(--primary)', color: 'var(--primary)' } : { borderColor: 'rgba(255,255,255,0.1)' }}>
+            <button className={`${styles.roleBtn} ${email === 'manager@procrm.com' ? styles.roleBtnActive : ''}`} type="button" onClick={() => quickLogin('manager@procrm.com')}>
+              <div className={styles.roleIcon} style={email === 'manager@procrm.com' ? { borderColor: 'var(--primary)', color: 'var(--primary)' } : { borderColor: 'rgba(255,255,255,0.1)' }}>
                 <Users size={20} />
               </div>
               <span>Manager</span>
             </button>
-            <button className={`${styles.roleBtn} ${role === 'Sales Staff' ? styles.roleBtnActive : ''}`} type="button" onClick={() => setRole('Sales Staff')}>
-              <div className={styles.roleIcon} style={role === 'Sales Staff' ? { borderColor: 'var(--primary)', color: 'var(--primary)' } : { borderColor: 'rgba(255,255,255,0.1)' }}>
+            <button className={`${styles.roleBtn} ${email === 'sales@procrm.com' ? styles.roleBtnActive : ''}`} type="button" onClick={() => quickLogin('sales@procrm.com')}>
+              <div className={styles.roleIcon} style={email === 'sales@procrm.com' ? { borderColor: 'var(--primary)', color: 'var(--primary)' } : { borderColor: 'rgba(255,255,255,0.1)' }}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
               </div>
               <span>Sales</span>
             </button>
-            <button className={`${styles.roleBtn} ${role === 'Crew / Worker' ? styles.roleBtnActive : ''}`} type="button" onClick={() => setRole('Crew / Worker')}>
-              <div className={styles.roleIcon} style={role === 'Crew / Worker' ? { borderColor: 'var(--primary)', color: 'var(--primary)' } : { borderColor: 'rgba(255,255,255,0.1)' }}>
+            <button className={`${styles.roleBtn} ${email === 'crew@procrm.com' ? styles.roleBtnActive : ''}`} type="button" onClick={() => quickLogin('crew@procrm.com')}>
+              <div className={styles.roleIcon} style={email === 'crew@procrm.com' ? { borderColor: 'var(--primary)', color: 'var(--primary)' } : { borderColor: 'rgba(255,255,255,0.1)' }}>
                 <Users size={20} />
               </div>
               <span>Crew</span>
             </button>
-            <button className={`${styles.roleBtn} ${role === 'Accountant / Finance' ? styles.roleBtnActive : ''}`} type="button" onClick={() => setRole('Accountant / Finance')}>
-              <div className={styles.roleIcon} style={role === 'Accountant / Finance' ? { borderColor: 'var(--primary)', color: 'var(--primary)' } : { borderColor: 'rgba(255,255,255,0.1)' }}>
+            <button className={`${styles.roleBtn} ${email === 'finance@procrm.com' ? styles.roleBtnActive : ''}`} type="button" onClick={() => quickLogin('finance@procrm.com')}>
+              <div className={styles.roleIcon} style={email === 'finance@procrm.com' ? { borderColor: 'var(--primary)', color: 'var(--primary)' } : { borderColor: 'rgba(255,255,255,0.1)' }}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
               </div>
               <span>Finance</span>
@@ -77,6 +108,13 @@ export default function LoginPage() {
         <form className={styles.loginForm} onSubmit={handleLogin}>
           <p className={styles.dividerText}>OR LOGIN WITH CREDENTIALS</p>
           
+          {error && (
+            <div style={{ backgroundColor: 'rgba(241,65,108,0.1)', color: '#f1416c', padding: '12px', borderRadius: '6px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+              <AlertCircle size={16} />
+              <span>{error}</span>
+            </div>
+          )}
+
           <div className={styles.inputGroup}>
             <label>Select Company</label>
             <div className={styles.inputWrapper}>
@@ -91,10 +129,17 @@ export default function LoginPage() {
           </div>
 
           <div className={styles.inputGroup}>
-            <label>Username</label>
+            <label>Email Address</label>
             <div className={styles.inputWrapper}>
               <User size={16} className={styles.inputIcon} />
-              <input type="text" placeholder="Enter your username" className={styles.textInput} />
+              <input 
+                type="email" 
+                placeholder="Enter your email" 
+                className={styles.textInput} 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
             </div>
           </div>
 
@@ -102,7 +147,14 @@ export default function LoginPage() {
             <label>Password</label>
             <div className={styles.inputWrapper}>
               <Lock size={16} className={styles.inputIcon} />
-              <input type="password" placeholder="Enter your password" defaultValue="password" className={styles.textInput} />
+              <input 
+                type="password" 
+                placeholder="Enter your password" 
+                className={styles.textInput} 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
             </div>
           </div>
 
@@ -121,8 +173,8 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <button type="submit" className={styles.submitBtn}>
-            <LogIn size={18} /> Sign In to Dashboard
+          <button type="submit" className={styles.submitBtn} disabled={loading}>
+            {loading ? 'Authenticating...' : <><LogIn size={18} /> Sign In to Dashboard</>}
           </button>
         </form>
       </div>

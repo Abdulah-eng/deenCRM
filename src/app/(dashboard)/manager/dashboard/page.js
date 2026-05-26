@@ -1,30 +1,16 @@
 "use client";
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from '@/components/layout/Header';
 import { ClipboardList, Users, Calendar, AlertCircle, Eye, BarChart2 } from 'lucide-react';
 import styles from './page.module.css';
-
-const todaysOrders = [
-  { id: 'ORD-2024-058', customer: 'Bauunternehmen GmbH', type: 'SCREED', crew: 'Team A', status: 'IN PROGRESS' },
-  { id: 'ORD-2024-059', customer: 'Wohnbau AG',          type: 'HEATING', crew: 'Team C', status: 'SCHEDULED' },
-  { id: 'ORD-2024-060', customer: 'Stadtbau GmbH',       type: 'SCREED', crew: 'Team B', status: 'IN PROGRESS' },
-  { id: 'ORD-2024-061', customer: 'Immobilien Keller',   type: 'ELECTRICAL', crew: 'Team D', status: 'COMPLETED' },
-  { id: 'ORD-2024-062', customer: 'Bau & Projekt GmbH',  type: 'SCREED', crew: 'Team A', status: 'DELAYED' },
-];
-
-const crewStatus = [
-  { name: 'Team A', role: 'Main Crew', order: 'Screed · ORD-2024-058', status: 'On Site',   color: '#50cd89' },
-  { name: 'Team B', role: 'Main Crew', order: 'Screed · ORD-2024-060', status: 'On Site',   color: '#50cd89' },
-  { name: 'Team C', role: 'Main Crew', order: 'Heating · ORD-2024-059',status: 'Transit',   color: '#ffc700' },
-  { name: 'Team D', role: 'Sub Crew',  order: 'Electrical · ORD-2024-061', status: 'Done',  color: '#a1a5b7' },
-  { name: 'Team E', role: 'Sub Crew',  order: 'Screed · —',            status: 'Available', color: '#009ef7' },
-];
+import { supabase } from '@/utils/supabase';
 
 const STATUS_COLORS = {
   'IN PROGRESS': { bg: 'rgba(0,158,247,0.12)', color: '#009ef7' },
   'SCHEDULED':   { bg: 'rgba(114,57,234,0.12)', color: '#7239ea' },
   'COMPLETED':   { bg: 'rgba(80,205,137,0.12)', color: '#50cd89' },
   'DELAYED':     { bg: 'rgba(241,65,108,0.12)', color: '#f1416c' },
+  'DRAFT':       { bg: 'rgba(241,241,244,1)',   color: '#7e8299' },
 };
 
 const TYPE_COLORS = {
@@ -33,11 +19,60 @@ const TYPE_COLORS = {
   'ELECTRICAL': { bg: 'rgba(0,158,247,0.12)',  color: '#009ef7' },
 };
 
-// Weekly order volume bar chart (Mon-Fri)
+// Weekly order volume bar chart (Mon-Fri) - kept static for now as generating real history requires deep query
 const weekVol = [14, 9, 16, 11, 8];
 const weekMax = Math.max(...weekVol);
 
 export default function ManagerDashboard() {
+  const [todaysOrders, setTodaysOrders] = useState([]);
+  const [crewStatus, setCrewStatus] = useState([]);
+  const [stats, setStats] = useState({ active: 0, scheduled: 0, openComplaints: 0 });
+
+  useEffect(() => {
+    async function fetchData() {
+      // Fetch active orders (join customers and crews)
+      const { data: ordersData } = await supabase
+        .from('orders')
+        .select('*, customers(name), crews(name)')
+        .in('status', ['IN PROGRESS', 'SCHEDULED', 'DELAYED', 'COMPLETED'])
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      if (ordersData) {
+        setTodaysOrders(ordersData.map(o => ({
+          id: o.display_id,
+          customer: o.customers?.name || 'Unknown',
+          type: o.type,
+          crew: o.crews?.name || 'Unassigned',
+          status: o.status
+        })));
+      }
+
+      // Fetch all crews
+      const { data: crewsData } = await supabase.from('crews').select('*');
+      if (crewsData) {
+        setCrewStatus(crewsData.map(c => ({
+          name: c.name,
+          role: 'Main Crew', // simplified
+          order: c.specialization,
+          status: 'Available',
+          color: c.color || '#009ef7'
+        })));
+      }
+
+      // Fetch stats
+      const { count: activeCount } = await supabase.from('orders').select('*', { count: 'exact', head: true }).in('status', ['IN PROGRESS', 'SCHEDULED']);
+      const { count: complaintCount } = await supabase.from('complaints').select('*', { count: 'exact', head: true }).in('status', ['OPEN', 'IN PROGRESS']);
+      
+      setStats({
+        active: activeCount || 0,
+        scheduled: 5, // mock for now
+        openComplaints: complaintCount || 0
+      });
+    }
+    fetchData();
+  }, []);
+
   return (
     <>
       <Header title="Dashboard" subtitle="Dashboard" />
@@ -55,9 +90,9 @@ export default function ManagerDashboard() {
               <ClipboardList size={22} />
             </div>
             <div>
-              <h2 className={styles.kpiVal}>31</h2>
+              <h2 className={styles.kpiVal}>{stats.active}</h2>
               <p className={styles.kpiLabel}>Active Orders</p>
-              <span className={styles.kpiSub} style={{ color: '#50cd89' }}>+3 today</span>
+              <span className={styles.kpiSub} style={{ color: '#50cd89' }}>Live from DB</span>
             </div>
           </div>
           <div className={`card ${styles.kpiCard}`}>
@@ -65,9 +100,9 @@ export default function ManagerDashboard() {
               <Users size={22} />
             </div>
             <div>
-              <h2 className={styles.kpiVal}>8</h2>
+              <h2 className={styles.kpiVal}>{crewStatus.length}</h2>
               <p className={styles.kpiLabel}>Crews on Field</p>
-              <span className={styles.kpiSub} style={{ color: '#ffc700' }}>2 on break</span>
+              <span className={styles.kpiSub} style={{ color: '#ffc700' }}>Live from DB</span>
             </div>
           </div>
           <div className={`card ${styles.kpiCard}`}>
@@ -75,7 +110,7 @@ export default function ManagerDashboard() {
               <Calendar size={22} />
             </div>
             <div>
-              <h2 className={styles.kpiVal}>5</h2>
+              <h2 className={styles.kpiVal}>{stats.scheduled}</h2>
               <p className={styles.kpiLabel}>Scheduled Today</p>
               <span className={styles.kpiSub} style={{ color: '#a1a5b7' }}>Next: 09:00</span>
             </div>
@@ -85,7 +120,7 @@ export default function ManagerDashboard() {
               <AlertCircle size={22} />
             </div>
             <div>
-              <h2 className={styles.kpiVal}>3</h2>
+              <h2 className={styles.kpiVal}>{stats.openComplaints}</h2>
               <p className={styles.kpiLabel}>Open Complaints</p>
               <span className={styles.kpiSub} style={{ color: '#f1416c' }}>Needs action</span>
             </div>
@@ -98,7 +133,7 @@ export default function ManagerDashboard() {
           <div className={styles.leftCol}>
             <div className="card">
               <div className={styles.cardHeader}>
-                <div className={styles.cardTitle}><ClipboardList size={16} /> Today's Active Orders</div>
+                <div className={styles.cardTitle}><ClipboardList size={16} /> Recent Orders</div>
                 <a className={styles.viewAll}>View All</a>
               </div>
               <table className={styles.table}>
@@ -114,8 +149,8 @@ export default function ManagerDashboard() {
                 </thead>
                 <tbody>
                   {todaysOrders.map((o, i) => {
-                    const sc = STATUS_COLORS[o.status] || {};
-                    const tc = TYPE_COLORS[o.type] || {};
+                    const sc = STATUS_COLORS[o.status] || STATUS_COLORS['IN PROGRESS'];
+                    const tc = TYPE_COLORS[o.type] || TYPE_COLORS['SCREED'];
                     return (
                       <tr key={i}>
                         <td><span className={styles.ordId}>{o.id}</span></td>
@@ -127,6 +162,9 @@ export default function ManagerDashboard() {
                       </tr>
                     );
                   })}
+                  {todaysOrders.length === 0 && (
+                    <tr><td colSpan="6" style={{ textAlign: 'center', padding: '20px' }}>No active orders</td></tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -154,7 +192,7 @@ export default function ManagerDashboard() {
           <div className={styles.rightCol}>
             <div className="card">
               <div className={styles.cardHeader}>
-                <div className={styles.cardTitle}><Users size={16} /> Crew Status Today</div>
+                <div className={styles.cardTitle}><Users size={16} /> Crew Status</div>
                 <a className={styles.viewAll}>Manage</a>
               </div>
               <div className={styles.crewList}>

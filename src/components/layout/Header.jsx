@@ -3,23 +3,63 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Bell, Search, ChevronDown, User, ShieldAlert, CheckCircle, Settings, LogOut } from 'lucide-react';
 import styles from './Header.module.css';
 import { usePathname, useRouter } from 'next/navigation';
+import { supabase } from '@/utils/supabase';
 
 export default function Header({ title = "Dashboard", subtitle = "Overview" }) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [userProfile, setUserProfile] = useState(null);
+  
   const pathname = usePathname();
   const router = useRouter();
   const userMenuRef = useRef(null);
   const notifRef = useRef(null);
 
+  useEffect(() => {
+    async function loadUser() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        router.push('/login');
+        return;
+      }
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', session.user.id)
+        .single();
+        
+      if (profile) {
+        setUserProfile(profile);
+      }
+    }
+    loadUser();
+  }, [router]);
+
   const roleInfo = React.useMemo(() => {
-    if (pathname.startsWith('/admin')) return { avatar: 'A', userName: 'Admin User', userRole: 'Super Administrator', root: 'Admin', roleBadge: 'Administrator', roleBadgeColor: '#7239ea' };
-    if (pathname.startsWith('/manager')) return { avatar: 'M', userName: 'Max Mueller', userRole: 'Manager', root: 'Manager', roleBadge: 'Manager', roleBadgeColor: '#009ef7' };
-    if (pathname.startsWith('/sales')) return { avatar: 'H', userName: 'Hans Schmidt', userRole: 'Sales Staff', root: 'Sales', roleBadge: 'Sales Staff', roleBadgeColor: '#10b981' };
-    if (pathname.startsWith('/finance')) return { avatar: 'A', userName: 'Anna Fischer', userRole: 'Accountant', root: 'Finance', roleBadge: 'Accountant', roleBadgeColor: '#c92a42' };
-    if (pathname.startsWith('/crew')) return { avatar: 'K', userName: 'Klaus Weber', userRole: 'Team Alpha Lead', root: 'Crew', roleBadge: 'Crew', roleBadgeColor: '#f97316' };
-    return { avatar: 'U', userName: 'User', userRole: 'Staff', root: 'System', roleBadge: 'Staff', roleBadgeColor: '#a1a5b7' };
-  }, [pathname]);
+    if (userProfile) {
+      const roleMap = {
+        'admin': { badge: 'Administrator', color: '#7239ea', root: 'Admin' },
+        'manager': { badge: 'Manager', color: '#009ef7', root: 'Manager' },
+        'finance': { badge: 'Accountant', color: '#c92a42', root: 'Finance' },
+        'sales': { badge: 'Sales Staff', color: '#10b981', root: 'Sales' },
+        'crew': { badge: 'Crew', color: '#f97316', root: 'Crew' },
+      };
+      const info = roleMap[userProfile.role] || { badge: 'User', color: '#a1a5b7', root: 'System' };
+      
+      return {
+        avatar: userProfile.avatar_url || userProfile.full_name?.charAt(0) || 'U',
+        userName: userProfile.full_name || 'Unknown User',
+        userRole: info.badge,
+        root: info.root,
+        roleBadge: info.badge,
+        roleBadgeColor: info.color
+      };
+    }
+
+    // Fallback while loading
+    return { avatar: '...', userName: 'Loading...', userRole: '...', root: '...', roleBadge: '...', roleBadgeColor: '#ccc' };
+  }, [userProfile]);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -30,6 +70,11 @@ export default function Header({ title = "Dashboard", subtitle = "Overview" }) {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push('/login');
+  };
 
   return (
     <header className={styles.header}>
@@ -128,7 +173,7 @@ export default function Header({ title = "Dashboard", subtitle = "Overview" }) {
                   Settings
                 </button>
                 <div className={styles.udDivider} />
-                <button className={`${styles.udItem} ${styles.udLogout}`} onClick={() => router.push('/login')}>
+                <button className={`${styles.udItem} ${styles.udLogout}`} onClick={handleLogout}>
                   <LogOut size={16} />
                   Logout
                 </button>

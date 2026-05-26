@@ -1,17 +1,92 @@
 "use client";
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from '@/components/layout/Header';
 import { Download, TrendingUp, AlertCircle, Clock, Users, BarChart3, PieChart } from 'lucide-react';
 import styles from './page.module.css';
+import { supabase } from '@/utils/supabase';
 
 export default function FinanceDashboard() {
+  const [stats, setStats] = useState({
+    revenue: 0,
+    costs: 0,
+    margin: 0,
+    marginPercent: 0,
+    overdueAmount: 0,
+    overdueCount: 0,
+    pendingAmount: 0,
+    pendingCount: 0,
+    settlementsAmount: 0,
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      // Fetch invoices
+      const { data: invoices } = await supabase.from('invoices').select('total, status');
+      let rev = 0;
+      let overdueAmt = 0;
+      let overdueC = 0;
+      let pendingAmt = 0;
+      let pendingC = 0;
+
+      if (invoices) {
+        invoices.forEach(inv => {
+          if (inv.status === 'PAID') rev += Number(inv.total);
+          if (inv.status === 'OVERDUE') {
+            overdueAmt += Number(inv.total);
+            overdueC++;
+          }
+          if (inv.status === 'PENDING') {
+            pendingAmt += Number(inv.total);
+            pendingC++;
+          }
+        });
+      }
+
+      // Fetch costs
+      const { data: costsData } = await supabase.from('actual_costs').select('amount');
+      let totalCosts = 0;
+      if (costsData) {
+        costsData.forEach(c => {
+          totalCosts += Number(c.amount);
+        });
+      }
+
+      // Fetch crew settlements
+      const { data: settlements } = await supabase.from('crew_settlements').select('amount').eq('status', 'UNPAID');
+      let settlementsAmt = 0;
+      if (settlements) {
+        settlements.forEach(s => {
+          settlementsAmt += Number(s.amount);
+        });
+      }
+
+      const grossMargin = rev - totalCosts;
+      const marginPct = rev > 0 ? ((grossMargin / rev) * 100).toFixed(1) : 0;
+
+      setStats({
+        revenue: rev,
+        costs: totalCosts,
+        margin: grossMargin,
+        marginPercent: marginPct,
+        overdueAmount: overdueAmt,
+        overdueCount: overdueC,
+        pendingAmount: pendingAmt,
+        pendingCount: pendingC,
+        settlementsAmount: settlementsAmt,
+      });
+      setLoading(false);
+    }
+    fetchData();
+  }, []);
+
   const summaryCards = [
-    { title: 'Total Revenue', value: '€ 486,400', subtext: '+12.3%', icon: <TrendingUp size={20} color="#f1416c" />, bg: 'rgba(241, 65, 108, 0.1)' },
-    { title: 'Total Costs', value: '€ 354,200', subtext: '+4.1%', icon: <BarChart3 size={20} color="#ffc700" />, bg: 'rgba(255, 199, 0, 0.1)' },
-    { title: 'Gross Margin', value: '€ 132,200', subtext: '27.2%', icon: <TrendingUp size={20} color="#50cd89" />, bg: 'rgba(80, 205, 137, 0.1)' },
-    { title: 'Overdue Invoices', value: '€ 18,400', subtext: '2 invoices', icon: <AlertCircle size={20} color="#f1416c" />, bg: 'rgba(241, 65, 108, 0.1)' },
-    { title: 'Pending Invoices', value: '€ 124,117', subtext: '4 invoices', icon: <Clock size={20} color="#009ef7" />, bg: 'rgba(0, 158, 247, 0.1)' },
-    { title: 'Crew Settlements', value: '€ 48,200', subtext: 'Due this week', icon: <Users size={20} color="#7239ea" />, bg: 'rgba(114, 57, 234, 0.1)' },
+    { title: 'Total Revenue', value: `€ ${stats.revenue.toLocaleString()}`, subtext: 'Live from DB', icon: <TrendingUp size={20} color="#f1416c" />, bg: 'rgba(241, 65, 108, 0.1)' },
+    { title: 'Total Costs', value: `€ ${stats.costs.toLocaleString()}`, subtext: 'Live from DB', icon: <BarChart3 size={20} color="#ffc700" />, bg: 'rgba(255, 199, 0, 0.1)' },
+    { title: 'Gross Margin', value: `€ ${stats.margin.toLocaleString()}`, subtext: `${stats.marginPercent}%`, icon: <TrendingUp size={20} color="#50cd89" />, bg: 'rgba(80, 205, 137, 0.1)' },
+    { title: 'Overdue Invoices', value: `€ ${stats.overdueAmount.toLocaleString()}`, subtext: `${stats.overdueCount} invoices`, icon: <AlertCircle size={20} color="#f1416c" />, bg: 'rgba(241, 65, 108, 0.1)' },
+    { title: 'Pending Invoices', value: `€ ${stats.pendingAmount.toLocaleString()}`, subtext: `${stats.pendingCount} invoices`, icon: <Clock size={20} color="#009ef7" />, bg: 'rgba(0, 158, 247, 0.1)' },
+    { title: 'Crew Settlements', value: `€ ${stats.settlementsAmount.toLocaleString()}`, subtext: 'Unpaid', icon: <Users size={20} color="#7239ea" />, bg: 'rgba(114, 57, 234, 0.1)' },
   ];
 
   return (
@@ -32,7 +107,9 @@ export default function FinanceDashboard() {
         </div>
 
         <div className={styles.statsGrid}>
-          {summaryCards.map((card, idx) => (
+          {loading ? (
+             <div style={{ padding: '20px', gridColumn: '1 / -1', textAlign: 'center' }}>Loading data...</div>
+          ) : summaryCards.map((card, idx) => (
             <div key={idx} className={styles.statCard}>
               <div className={styles.statIcon} style={{ backgroundColor: card.bg }}>
                 {card.icon}
@@ -56,7 +133,7 @@ export default function FinanceDashboard() {
               </div>
             </div>
             <div className={styles.barChartContainer}>
-              {/* CSS Custom Bar Chart */}
+              {/* CSS Custom Bar Chart (Kept Static for Visuals) */}
               <div className={styles.yAxis}>
                 <span>€500K</span><span>€400K</span><span>€300K</span><span>€200K</span><span>€100K</span><span>€0K</span>
               </div>
@@ -90,7 +167,7 @@ export default function FinanceDashboard() {
           {/* Donut Chart Section */}
           <div className="card">
             <div className={styles.chartHeader}>
-              <h3>Revenue by Company</h3>
+              <h3>Revenue by Company (Static Visual)</h3>
             </div>
             <div className={styles.donutChartContainer}>
               <div className={styles.donutChart}>
