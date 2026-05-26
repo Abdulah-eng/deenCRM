@@ -1,104 +1,148 @@
-"use client";
-import React from 'react';
+'use client';
+import { useState, useEffect } from 'react';
 import Header from '@/components/layout/Header';
-import { Download, Calculator, FileText, TrendingUp, TrendingDown, Eye, CheckCircle2 } from 'lucide-react';
-import styles from './page.module.css';
+import { supabase } from '@/utils/supabase';
+import { TrendingUp, TrendingDown, FileText, Download, Eye } from 'lucide-react';
 
-const records = [
-  { id: 'ORD-2024-049', customer: 'Renovierung König', type: 'HEATING', revenue: '€ 4,200', planDb: '€ 2,100', matCost: '€ 1,890', crewCost: '€ 210', actualDb: '€ 1,710', variance: '+€ 180', result: 'PROFIT' },
-  { id: 'ORD-2024-041', customer: 'Wohnbau AG', type: 'SCREED', revenue: '€ 32,500', planDb: '€ 8,125', matCost: '€ 6,500', crewCost: '€ 2,000', actualDb: '€ 5,800', variance: '+€ 700', result: 'PROFIT' },
-  { id: 'ORD-2024-035', customer: 'Bauunternehmen', type: 'SCREED', revenue: '€ 9,600', planDb: '€ 2,400', matCost: '€ 2,580', crewCost: '€ 800', actualDb: '€ 1,980', variance: '-€ 180', result: 'LOSS' },
-  { id: 'ORD-2024-028', customer: 'Stadtbau GmbH', type: 'SCREED', revenue: '€ 12,350', planDb: '€ 3,088', matCost: '€ 2,900', crewCost: '€ 1,100', actualDb: '€ 2,650', variance: '+€ 188', result: 'PROFIT' },
-  { id: 'ORD-2024-021', customer: 'Immobilien Keller', type: 'ELECTRICAL', revenue: '€ 5,800', planDb: '€ 1,450', matCost: '€ 1,380', crewCost: '€ 400', actualDb: '€ 1,300', variance: '+€ 70', result: 'PROFIT' },
-];
+export default function PostCalculationPage() {
+  const [data, setData] = useState([]);
+  const [typeFilter, setTypeFilter] = useState('All');
+  const [statusFilter, setStatusFilter] = useState('All');
 
-export default function PostCalculation() {
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    const { data: orders, error: ordersError } = await supabase
+      .from('orders')
+      .select('id, display_id, type, revenue, plan_db, actual_db, status, customers(name)');
+      
+    const { data: costs, error: costsError } = await supabase
+      .from('actual_costs')
+      .select('order_id, amount');
+
+    if (!ordersError && !costsError) {
+      const processed = orders.map(order => {
+        const orderCosts = costs.filter(c => c.order_id === order.id).reduce((a, c) => a + (c.amount || 0), 0);
+        const revenue = order.revenue || 0;
+        const plannedMargin = order.plan_db || 0;
+        const actualMargin = revenue - orderCosts;
+        const variance = plannedMargin === 0 ? 0 : ((actualMargin - plannedMargin) / Math.abs(plannedMargin)) * 100;
+        
+        return {
+          ...order,
+          plannedMargin,
+          actualCosts: orderCosts,
+          actualMargin,
+          variance
+        };
+      });
+      setData(processed);
+    }
+  };
+
+  const filtered = data.filter(d => {
+    const matchesType = typeFilter === 'All' || d.type === typeFilter;
+    const matchesStatus = statusFilter === 'All' || d.status === statusFilter;
+    return matchesType && matchesStatus;
+  });
+
+  const totalRevenue = data.reduce((a, d) => a + (d.revenue || 0), 0);
+  const totalPlannedMargin = data.reduce((a, d) => a + d.plannedMargin, 0);
+  const totalActualMargin = data.reduce((a, d) => a + d.actualMargin, 0);
+  const totalVariance = totalPlannedMargin === 0 ? 0 : ((totalActualMargin - totalPlannedMargin) / Math.abs(totalPlannedMargin)) * 100;
+
+  const styles = {
+    container: { padding: '20px' },
+    kpiGrid: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '20px' },
+    kpiCard: { padding: '20px', background: '#fff', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' },
+    controls: { display: 'flex', gap: '15px', marginBottom: '20px', alignItems: 'center' },
+    select: { padding: '8px 12px', borderRadius: '4px', border: '1px solid #ddd' },
+    button: { padding: '8px 16px', background: '#0070f3', color: '#fff', border: 'none', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' },
+    table: { width: '100%', borderCollapse: 'collapse', background: '#fff' },
+    th: { textAlign: 'left', padding: '12px', borderBottom: '2px solid #eee' },
+    td: { padding: '12px', borderBottom: '1px solid #eee' },
+    positive: { color: 'green', fontWeight: 'bold' },
+    negative: { color: 'red', fontWeight: 'bold' }
+  };
+
   return (
-    <>
-      <Header title="Post-Calculation" subtitle="Post-Calculation" />
-      <div className={styles.container}>
-        <div className={styles.topBar}>
-          <div>
-            <h2 className={styles.title}>Post-Calculation</h2>
-            <p className={styles.desc}>Plan DB vs Actual DB — cost analysis per completed order.</p>
-          </div>
-          <button className="btn btn-primary" style={{ backgroundColor: '#a61a2f', borderColor: '#a61a2f' }}>
-            <Download size={16} style={{ marginRight: 6 }} /> Export Report
-          </button>
-        </div>
+    <div style={styles.container}>
+      <Header title="Post Calculation" />
 
-        <div className={styles.kpiGrid}>
-          <div className="card"><div className={styles.kpiCard}>
-            <div className={styles.kpiIcon} style={{ background: 'rgba(241,65,108,0.1)', color: '#f1416c' }}><FileText size={20} /></div>
-            <div><h2 className={styles.kpiVal}>€ 64,450</h2><p className={styles.kpiLabel}>Total Revenue</p></div>
-          </div></div>
-          <div className="card"><div className={styles.kpiCard}>
-            <div className={styles.kpiIcon} style={{ background: 'rgba(59,130,246,0.1)', color: '#3b82f6' }}><TrendingUp size={20} /></div>
-            <div><h2 className={styles.kpiVal}>€ 17,163</h2><p className={styles.kpiLabel}>Total Plan DB</p></div>
-          </div></div>
-          <div className="card"><div className={styles.kpiCard}>
-            <div className={styles.kpiIcon} style={{ background: 'rgba(16,185,129,0.1)', color: '#10b981' }}><Calculator size={20} /></div>
-            <div><h2 className={styles.kpiVal}>€ 15,140</h2><p className={styles.kpiLabel}>Total Actual DB</p></div>
-          </div></div>
-          <div className="card"><div className={styles.kpiCard}>
-            <div className={styles.kpiIcon} style={{ background: 'rgba(16,185,129,0.1)', color: '#10b981' }}><TrendingUp size={20} /></div>
-            <div><h2 className={styles.kpiVal} style={{ color: '#10b981' }}>+€ 1,340</h2><p className={styles.kpiLabel}>DB Variance</p></div>
-          </div></div>
-        </div>
-
-        <div className="card">
-          <div className={styles.tableHeader}>
-            <div className={styles.tableTitle}><Calculator size={16} color="#a61a2f" /> Order Post-Calculation</div>
-          </div>
-          <div className="table-container">
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th>ORDER #</th>
-                  <th>CUSTOMER</th>
-                  <th>TYPE</th>
-                  <th>REVENUE</th>
-                  <th>PLAN DB</th>
-                  <th>MAT. COST</th>
-                  <th>CREW COST</th>
-                  <th>ACTUAL DB</th>
-                  <th>VARIANCE</th>
-                  <th>RESULT</th>
-                  <th>DETAILS</th>
-                </tr>
-              </thead>
-              <tbody>
-                {records.map((r, i) => {
-                  const isProfit = r.result === 'PROFIT';
-                  return (
-                    <tr key={i}>
-                      <td style={{ color: '#a61a2f', fontWeight: 600, fontSize: '12px' }}>{r.id}</td>
-                      <td><strong>{r.customer}</strong></td>
-                      <td>
-                        <span className={styles.badge} style={{ backgroundColor: 'rgba(241,65,108,0.1)', color: '#f1416c' }}>
-                          {r.type}
-                        </span>
-                      </td>
-                      <td><strong>{r.revenue}</strong></td>
-                      <td style={{ color: '#3b82f6', fontWeight: 600 }}>{r.planDb}</td>
-                      <td style={{ color: '#f59e0b', fontWeight: 600 }}>{r.matCost}</td>
-                      <td style={{ color: '#f59e0b', fontWeight: 600 }}>{r.crewCost}</td>
-                      <td style={{ color: '#10b981', fontWeight: 600 }}>{r.actualDb}</td>
-                      <td style={{ color: isProfit ? '#10b981' : '#f1416c', fontWeight: 700 }}>{r.variance}</td>
-                      <td style={{ color: isProfit ? '#10b981' : '#f1416c', fontWeight: 700, fontSize: '11px' }}>{r.result}</td>
-                      <td>
-                        <button className={styles.actionBtn}>
-                          <Eye size={14} color="#a61a2f" />
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+      <div style={styles.kpiGrid}>
+        <div style={styles.kpiCard}><h3>Total Revenue</h3><p>€{totalRevenue.toFixed(2)}</p></div>
+        <div style={styles.kpiCard}><h3>Planned Margin</h3><p>€{totalPlannedMargin.toFixed(2)}</p></div>
+        <div style={styles.kpiCard}><h3>Actual Margin</h3><p>€{totalActualMargin.toFixed(2)}</p></div>
+        <div style={styles.kpiCard}>
+          <h3>Margin Deviation</h3>
+          <p style={totalVariance >= 0 ? styles.positive : styles.negative}>
+            {totalVariance >= 0 ? <TrendingUp size={16}/> : <TrendingDown size={16}/>}
+            {totalVariance.toFixed(2)}%
+          </p>
         </div>
       </div>
-    </>
+
+      <div style={styles.controls}>
+        <select style={styles.select} value={typeFilter} onChange={e => setTypeFilter(e.target.value)}>
+          <option value="All">All Types</option>
+          <option value="PROJECT">Project</option>
+          <option value="SERVICE">Service</option>
+        </select>
+        <select style={styles.select} value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
+          <option value="All">All Statuses</option>
+          <option value="ACTIVE">Active</option>
+          <option value="COMPLETED">Completed</option>
+        </select>
+        <button style={styles.button} onClick={() => alert('Report exported!')}>
+          <Download size={20} /> Export Report
+        </button>
+      </div>
+
+      <table style={styles.table}>
+        <thead>
+          <tr>
+            <th style={styles.th}>Order</th>
+            <th style={styles.th}>Customer</th>
+            <th style={styles.th}>Type</th>
+            <th style={styles.th}>Revenue</th>
+            <th style={styles.th}>Planned Margin</th>
+            <th style={styles.th}>Actual Costs</th>
+            <th style={styles.th}>Actual Margin</th>
+            <th style={styles.th}>Variance %</th>
+            <th style={styles.th}>Status</th>
+            <th style={styles.th}>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {filtered.map(d => (
+            <tr key={d.id}>
+              <td style={styles.td}>{d.display_id}</td>
+              <td style={styles.td}>{d.customers?.name || '-'}</td>
+              <td style={styles.td}>{d.type}</td>
+              <td style={styles.td}>€{d.revenue || 0}</td>
+              <td style={styles.td}>€{d.plannedMargin}</td>
+              <td style={styles.td}>€{d.actualCosts}</td>
+              <td style={styles.td}>€{d.actualMargin}</td>
+              <td style={styles.td}>
+                <span style={d.variance >= 0 ? styles.positive : styles.negative}>
+                  {d.variance.toFixed(2)}%
+                </span>
+              </td>
+              <td style={styles.td}>{d.status}</td>
+              <td style={styles.td}>
+                <button 
+                  onClick={() => alert(`Details for ${d.display_id}:\nRevenue: €${d.revenue}\nCosts: €${d.actualCosts}\nMargin: €${d.actualMargin}`)}
+                  style={{background:'none',border:'none',cursor:'pointer'}}
+                >
+                  <Eye size={16} />
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }

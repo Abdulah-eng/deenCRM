@@ -1,129 +1,147 @@
-"use client";
-import React from 'react';
+'use client';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/utils/supabase';
 import Header from '@/components/layout/Header';
-import { Calendar, ChevronDown, CalendarX2 } from 'lucide-react';
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Clock } from 'lucide-react';
 import styles from './page.module.css';
 
-const weekSchedule = [
-  {
-    day: 'MONDAY', date: 'May 13', id: 'ORD-2024-058', customer: 'Bauunternehmen GmbH', 
-    location: 'Munich', time: '07:00-16:00', area: '480 m²', status: 'IN PROGRESS', color: '#f97316'
-  },
-  {
-    day: 'TUESDAY', date: 'May 14', id: 'ORD-2024-058', customer: 'Bauunternehmen GmbH', 
-    location: 'Munich', time: '07:00-16:00', area: '480 m²', status: 'IN PROGRESS', color: '#f97316'
-  },
-  {
-    day: 'WEDNESDAY', date: 'May 15', id: 'ORD-2024-060', customer: 'Stadtbau GmbH', 
-    location: 'Augsburg', time: '07:00-16:00', area: '320 m²', status: 'SCHEDULED', color: '#f59e0b'
-  },
-  {
-    day: 'THURSDAY', date: 'May 16', empty: true
-  },
-  {
-    day: 'FRIDAY', date: 'May 17', id: 'ORD-2024-062', customer: 'Bau & Projekt GmbH', 
-    location: 'Munich', time: '07:00-16:00', area: '480 m²', status: 'SCHEDULED', color: '#f59e0b'
+export default function MySchedulePage() {
+  const [orders, setOrders] = useState([]);
+  const [crews, setCrews] = useState([]);
+  const [selectedCrew, setSelectedCrew] = useState('');
+  const [currentWeekStart, setCurrentWeekStart] = useState(() => {
+    const today = new Date();
+    const day = today.getDay();
+    const diff = today.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
+    return new Date(today.setDate(diff));
+  });
+
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
+  async function fetchOrders() {
+    const { data, error } = await supabase
+      .from('orders')
+      .select('id, display_id, type, scheduled_date, start_hour, span_hours, location, customers(name), crews(name, id)')
+      .not('scheduled_date', 'is', null);
+      
+    if (data) {
+      setOrders(data);
+      
+      const uniqueCrews = Array.from(
+        new Set(data.map(o => o.crews?.name).filter(Boolean))
+      ).map(name => {
+        const crewData = data.find(o => o.crews?.name === name);
+        return { name, id: crewData.crews.id };
+      });
+      setCrews(uniqueCrews);
+    }
   }
-];
 
-const monthlySchedule = [
-  { date: 'May 13', id: 'ORD-2024-058', customer: 'Bauunternehmen GmbH', location: 'Munich', area: '480 m²', status: 'IN PROGRESS', color: '#f97316' },
-  { date: 'May 14', id: 'ORD-2024-058', customer: 'Bauunternehmen GmbH', location: 'Munich', area: '480 m²', status: 'IN PROGRESS', color: '#f97316' },
-  { date: 'May 15', id: 'ORD-2024-060', customer: 'Stadtbau GmbH', location: 'Augsburg', area: '320 m²', status: 'SCHEDULED', color: '#f59e0b' },
-  { date: 'May 16', empty: true },
-  { date: 'May 17', id: 'ORD-2024-062', customer: 'Bau & Projekt GmbH', location: 'Munich', area: '480 m²', status: 'SCHEDULED', color: '#f59e0b' },
-  { date: 'May 08', id: 'ORD-2024-049', customer: 'Renovierung König', location: 'Freiburg', area: '210 m²', status: 'COMPLETED', color: '#10b981' },
-  { date: 'May 07', id: 'ORD-2024-048', customer: 'Immobilien Keller', location: 'Nuremberg', area: '380 m²', status: 'COMPLETED', color: '#10b981' }
-];
+  const navigateWeek = (direction) => {
+    const newDate = new Date(currentWeekStart);
+    newDate.setDate(newDate.getDate() + (direction * 7));
+    setCurrentWeekStart(newDate);
+  };
 
-export default function MySchedule() {
+  const getDayDates = () => {
+    const dates = [];
+    for (let i = 0; i < 5; i++) {
+      const d = new Date(currentWeekStart);
+      d.setDate(d.getDate() + i);
+      dates.push(d);
+    }
+    return dates;
+  };
+
+  const weekDates = getDayDates();
+  const weekStartStr = weekDates[0].toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  const weekEndStr = weekDates[4].toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+
+  const getFilteredOrdersForDate = (dateObj) => {
+    return orders.filter(o => {
+      const oDate = new Date(o.scheduled_date);
+      const isSameDate = oDate.toDateString() === dateObj.toDateString();
+      const matchesCrew = selectedCrew ? o.crews?.id === selectedCrew : true;
+      return isSameDate && matchesCrew;
+    }).sort((a, b) => {
+      const timeA = a.start_hour ? parseInt(a.start_hour.split(':')[0]) : 0;
+      const timeB = b.start_hour ? parseInt(b.start_hour.split(':')[0]) : 0;
+      return timeA - timeB;
+    });
+  };
+
   return (
-    <>
-      <Header title="My Schedule" subtitle="My Schedule" />
-      <div className={styles.container}>
-        <div className={styles.topBar}>
-          <div>
-            <h2 className={styles.title}>My Schedule</h2>
-            <p className={styles.desc}>Team Alpha weekly schedule — May 2024</p>
-          </div>
-          <div className={styles.filterBox}>
-            <span>Week 20</span>
-            <ChevronDown size={16} />
-          </div>
+    <div className={styles.container}>
+      <Header title="My Schedule" userName="Crew Member" />
+      
+      <div className={styles.topBar}>
+        <div>
+          <h1 className={styles.title}>Weekly Schedule</h1>
+          <p className={styles.desc}>Manage your upcoming appointments and tasks.</p>
         </div>
-
-        <div className={styles.weekGrid}>
-          {weekSchedule.map((day, idx) => (
-            <div key={idx} className={styles.dayCard}>
-              <div className={styles.dayHeader}>
-                <span className={styles.dayName}>{day.day}</span>
-                <span className={styles.dayDate}>{day.date}</span>
-              </div>
-              
-              {day.empty ? (
-                <div className={styles.emptyDay}>
-                  <CalendarX2 size={24} color="#a1a5b7" />
-                  <span>No assignment</span>
-                </div>
-              ) : (
-                <div className={styles.dayContent}>
-                  <span className={styles.orderId} style={{ color: day.color }}>{day.id}</span>
-                  <h4 className={styles.customer}>{day.customer}</h4>
-                  <div className={styles.details}>
-                    <span>📍 {day.location}</span>
-                    <span>🕒 {day.time}</span>
-                    <span>📏 {day.area}</span>
-                  </div>
-                  <div className={styles.badge} style={{ backgroundColor: `${day.color}1A`, color: day.color }}>
-                    {day.status}
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-
-        <div className="card" style={{ marginTop: '24px' }}>
-          <div className={styles.tableHeader}>
-            <div className={styles.tableTitle}><Calendar size={16} /> Monthly Schedule — May 2024</div>
+        
+        <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--card-bg)', padding: '6px 12px', borderRadius: '8px', border: '1px solid var(--card-border)' }}>
+            <button onClick={() => navigateWeek(-1)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex' }}><ChevronLeft size={18} /></button>
+            <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--header-text)', minWidth: '130px', textAlign: 'center' }}>
+              {weekStartStr} - {weekEndStr}
+            </span>
+            <button onClick={() => navigateWeek(1)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex' }}><ChevronRight size={18} /></button>
           </div>
-          <div className="table-container">
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th>DATE</th>
-                  <th>ORDER #</th>
-                  <th>CUSTOMER</th>
-                  <th>LOCATION</th>
-                  <th>AREA</th>
-                  <th>STATUS</th>
-                </tr>
-              </thead>
-              <tbody>
-                {monthlySchedule.map((row, idx) => (
-                  <tr key={idx}>
-                    <td style={{ fontWeight: 600 }}>{row.date}</td>
-                    {row.empty ? (
-                      <>
-                        <td colSpan="4" style={{ textAlign: 'center', color: '#a1a5b7' }}>—</td>
-                        <td><span className={styles.badge} style={{ backgroundColor: 'rgba(161,165,183,0.1)', color: '#a1a5b7' }}>FREE</span></td>
-                      </>
-                    ) : (
-                      <>
-                        <td style={{ color: row.color, fontSize: '11px', fontWeight: 600 }}>{row.id}</td>
-                        <td><strong>{row.customer}</strong></td>
-                        <td style={{ color: '#a1a5b7' }}>{row.location}</td>
-                        <td style={{ color: '#f97316', fontWeight: 600 }}>{row.area}</td>
-                        <td><span className={styles.badge} style={{ backgroundColor: `${row.color}1A`, color: row.color }}>{row.status}</span></td>
-                      </>
-                    )}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+
+          <select 
+            className={styles.filterBox} 
+            value={selectedCrew} 
+            onChange={e => setSelectedCrew(e.target.value)}
+            style={{ padding: '8px 12px', border: '1px solid var(--card-border)', borderRadius: '6px', background: 'var(--card-bg)' }}
+          >
+            <option value="">All Crews</option>
+            {crews.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
         </div>
       </div>
-    </>
+
+      <div className={styles.weekGrid}>
+        {weekDates.map((date, index) => {
+          const dayOrders = getFilteredOrdersForDate(date);
+          const dayName = date.toLocaleDateString(undefined, { weekday: 'long' });
+          const dayDateStr = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+          const isToday = date.toDateString() === new Date().toDateString();
+
+          return (
+            <div key={index} className={styles.dayCard} style={{ borderColor: isToday ? '#d95319' : undefined }}>
+              <div className={styles.dayHeader}>
+                <span className={styles.dayName}>{dayName.toUpperCase()}</span>
+                <span className={styles.dayDate} style={{ color: isToday ? '#d95319' : undefined }}>{dayDateStr}</span>
+              </div>
+              
+              <div className={styles.dayContent}>
+                {dayOrders.length === 0 ? (
+                  <div className={styles.emptyDay}>
+                    <CalendarIcon size={24} style={{ opacity: 0.5 }} />
+                    No scheduled orders
+                  </div>
+                ) : (
+                  dayOrders.map(order => (
+                    <div key={order.id} style={{ padding: '12px', background: 'rgba(0,0,0,0.02)', border: '1px solid var(--card-border)', borderRadius: '6px', marginBottom: '12px' }}>
+                      <div className={styles.orderId}>{order.display_id || order.id.slice(0,8)}</div>
+                      <div className={styles.customer}>{order.customers?.name || 'Unknown Customer'}</div>
+                      <div className={styles.details}>
+                        <span><Clock size={12} /> {order.start_hour || 'TBD'} {order.span_hours ? `(${order.span_hours}h)` : ''}</span>
+                      </div>
+                      <span className={styles.badge} style={{ background: '#e0e7ff', color: '#4f46e5', border: 'none' }}>
+                        {order.type || 'Standard'}
+                      </span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }

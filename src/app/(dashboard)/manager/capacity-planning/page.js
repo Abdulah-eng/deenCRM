@@ -1,122 +1,182 @@
-"use client";
-import React from 'react';
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { supabase } from '@/utils/supabase';
 import Header from '@/components/layout/Header';
-import { Download, Banknote, CalendarDays, PieChart, BarChart2 } from 'lucide-react';
+import { BarChart2, Calendar, Users, Download } from 'lucide-react';
 import styles from './page.module.css';
 
-const teamData = [
-  { name: 'Team Alpha', spec: 'Screed', val: 92, color: '#3b82f6' },
-  { name: 'Team Beta', spec: 'Screed', val: 68, color: '#f59e0b' },
-  { name: 'Team Gamma', spec: 'Heating', val: 85, color: '#3b82f6' },
-  { name: 'Team Delta', spec: 'Electrical', val: 55, color: '#f1416c' },
-  { name: 'Team Epsilon', spec: 'Screed', val: 44, color: '#f1416c' },
-];
+export default function CapacityPlanningPage() {
+  const [orders, setOrders] = useState([]);
+  const [crews, setCrews] = useState([]);
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [typeFilter, setTypeFilter] = useState('All');
 
-export default function CapacityPlanning() {
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    const [ordersRes, crewsRes] = await Promise.all([
+      supabase.from('orders').select(`id, display_id, type, status, scheduled_date, location, area, customers(name), crews(name)`).not('scheduled_date', 'is', null),
+      supabase.from('crews').select('*')
+    ]);
+    
+    if (ordersRes.data) setOrders(ordersRes.data);
+    if (crewsRes.data) setCrews(crewsRes.data);
+  };
+
+  const handleGenerateReport = () => {
+    alert('Report exported!');
+  };
+
+  const filteredOrders = orders.filter(o => {
+    if (statusFilter !== 'All' && o.status !== statusFilter) return false;
+    if (typeFilter !== 'All' && o.type !== typeFilter) return false;
+    return true;
+  });
+
+  const totalScheduledOrders = filteredOrders.length;
+  const totalArea = filteredOrders.reduce((sum, o) => sum + (Number(o.area) || 0), 0);
+  
+  const typeCounts = filteredOrders.reduce((acc, o) => {
+    acc[o.type] = (acc[o.type] || 0) + 1;
+    return acc;
+  }, {});
+
+  // Group by week and crew
+  const getWeekNumber = (date) => {
+    const d = new Date(date);
+    d.setHours(0, 0, 0, 0);
+    d.setDate(d.getDate() + 3 - (d.getDay() + 6) % 7);
+    const week1 = new Date(d.getFullYear(), 0, 4);
+    return 1 + Math.round(((d.getTime() - week1.getTime()) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
+  };
+
+  const capacityData = {}; // crew_name -> { week1: count, week2: count }
+  crews.forEach(c => capacityData[c.name] = {});
+  
+  const weeks = new Set();
+
+  filteredOrders.forEach(o => {
+    if (!o.scheduled_date) return;
+    const week = `W${getWeekNumber(o.scheduled_date)}`;
+    weeks.add(week);
+    const crewName = o.crews?.name;
+    if (crewName) {
+      if (!capacityData[crewName]) capacityData[crewName] = {};
+      capacityData[crewName][week] = (capacityData[crewName][week] || 0) + 1;
+    }
+  });
+
+  const sortedWeeks = Array.from(weeks).sort();
+
   return (
-    <>
-      <Header title="Capacity Planning" subtitle="Capacity Planning" />
-      <div className={styles.container}>
-        <div className={styles.topBar}>
-          <div>
-            <h2 className={styles.title}>Capacity Planning</h2>
-            <p className={styles.desc}>Weekly order volume, crew utilization, and capacity reporting.</p>
-          </div>
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <div className={styles.datePicker}>
-              Week 20 (May 13-17)
-            </div>
-            <button className="btn btn-primary" style={{ backgroundColor: '#2563eb', borderColor: '#2563eb' }}>
-              <Download size={16} style={{ marginRight: 6 }} /> Generate Report
-            </button>
-          </div>
-        </div>
+    <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }}>
+      <Header title="Capacity Planning" />
 
-        <div className={styles.kpiGrid}>
-          <div className="card"><div className={styles.kpiCard}>
-            <div className={styles.kpiIcon} style={{ background: 'rgba(59,130,246,0.1)', color: '#3b82f6' }}><Banknote size={20} /></div>
-            <div><h2 className={styles.kpiVal}>€ 57,750</h2><p className={styles.kpiLabel}>Total Volume</p><p className={styles.kpiSub}>This week</p></div>
-          </div></div>
-          <div className="card"><div className={styles.kpiCard}>
-            <div className={styles.kpiIcon} style={{ background: 'rgba(16,185,129,0.1)', color: '#10b981' }}><CalendarDays size={20} /></div>
-            <div><h2 className={styles.kpiVal}>31</h2><p className={styles.kpiLabel}>Planned Orders</p><p className={styles.kpiSub}>5 crews active</p></div>
-          </div></div>
-          <div className="card"><div className={styles.kpiCard}>
-            <div className={styles.kpiIcon} style={{ background: 'rgba(245,158,11,0.1)', color: '#f59e0b' }}><PieChart size={20} /></div>
-            <div><h2 className={styles.kpiVal}>73%</h2><p className={styles.kpiLabel}>Avg Utilization</p><p className={styles.kpiSub}>Target: 80%</p></div>
-          </div></div>
-          <div className="card"><div className={styles.kpiCard}>
-            <div className={styles.kpiIcon} style={{ background: 'rgba(139,92,246,0.1)', color: '#8b5cf6' }}><BarChart2 size={20} /></div>
-            <div><h2 className={styles.kpiVal}>27%</h2><p className={styles.kpiLabel}>Available Capacity</p><p className={styles.kpiSub}>13 crew-days free</p></div>
-          </div></div>
+      <div style={{ display: 'flex', gap: '24px', marginBottom: '24px', marginTop: '24px' }}>
+        <div style={{ flex: 1, backgroundColor: 'white', padding: '20px', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+          <div style={{ color: '#64748b', fontSize: '14px', fontWeight: '500', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Calendar size={18} /> Total Scheduled
+          </div>
+          <div style={{ fontSize: '28px', fontWeight: '700' }}>{totalScheduledOrders}</div>
         </div>
-
-        <div className={styles.chartsGrid}>
-          <div className="card" style={{ padding: '24px', flex: 2 }}>
-            <h3 className={styles.chartTitle}>Weekly Order Volume (€) — Current vs. Planned</h3>
-            <div className={styles.chartLegend}>
-              <div className={styles.legendItem}><span style={{ background: '#3b82f6' }}></span> Actual Volume</div>
-              <div className={styles.legendItem}><span style={{ border: '2px solid #93c5fd', background: 'transparent' }}></span> Planned Capacity</div>
-            </div>
-            
-            <div className={styles.mixedChartContainer}>
-              <div className={styles.yAxis}>
-                <span>€18K</span><span>€16K</span><span>€14K</span><span>€12K</span><span>€10K</span><span>€8K</span><span>€6K</span><span>€4K</span><span>€2K</span><span>€0K</span>
+        <div style={{ flex: 1, backgroundColor: 'white', padding: '20px', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+          <div style={{ color: '#64748b', fontSize: '14px', fontWeight: '500', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <BarChart2 size={18} /> Total Area
+          </div>
+          <div style={{ fontSize: '28px', fontWeight: '700' }}>{totalArea.toLocaleString()} m²</div>
+        </div>
+        <div style={{ flex: 1, backgroundColor: 'white', padding: '20px', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+          <div style={{ color: '#64748b', fontSize: '14px', fontWeight: '500', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Users size={18} /> By Type
+          </div>
+          <div style={{ display: 'flex', gap: '12px', fontSize: '14px', flexWrap: 'wrap' }}>
+            {Object.entries(typeCounts).map(([type, count]) => (
+              <div key={type} style={{ backgroundColor: '#f1f5f9', padding: '4px 8px', borderRadius: '4px' }}>
+                {type}: <span style={{ fontWeight: 'bold' }}>{count}</span>
               </div>
-              <div className={styles.chartArea}>
-                <svg className={styles.lineOverlay} viewBox="0 0 100 100" preserveAspectRatio="none">
-                  <path d="M 10 20 Q 30 40 50 40 T 90 20" fill="none" stroke="#60a5fa" strokeWidth="1.5" />
-                  <circle cx="10" cy="20" r="1.5" fill="#60a5fa" />
-                  <circle cx="30" cy="30" r="1.5" fill="#60a5fa" />
-                  <circle cx="50" cy="40" r="1.5" fill="#60a5fa" />
-                  <circle cx="70" cy="40" r="1.5" fill="#60a5fa" />
-                  <circle cx="90" cy="20" r="1.5" fill="#60a5fa" />
-                </svg>
-                <div className={styles.barGroups}>
-                  <div className={styles.barGroup}>
-                    <div className={styles.bar} style={{ height: '70%', backgroundColor: '#4f46e5' }}></div>
-                    <span className={styles.xLabel}>Mon</span>
-                  </div>
-                  <div className={styles.barGroup}>
-                    <div className={styles.bar} style={{ height: '55%', backgroundColor: '#4f46e5' }}></div>
-                    <span className={styles.xLabel}>Tue</span>
-                  </div>
-                  <div className={styles.barGroup}>
-                    <div className={styles.bar} style={{ height: '45%', backgroundColor: '#4f46e5' }}></div>
-                    <span className={styles.xLabel}>Wed</span>
-                  </div>
-                  <div className={styles.barGroup}>
-                    <div className={styles.bar} style={{ height: '35%', backgroundColor: '#4f46e5' }}></div>
-                    <span className={styles.xLabel}>Thu</span>
-                  </div>
-                  <div className={styles.barGroup}>
-                    <div className={styles.bar} style={{ height: '65%', backgroundColor: '#4f46e5' }}></div>
-                    <span className={styles.xLabel}>Fri</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="card" style={{ padding: '24px', flex: 1 }}>
-            <h3 className={styles.chartTitle}>Crew Utilization by Team</h3>
-            <div className={styles.teamList}>
-              {teamData.map((t, i) => (
-                <div key={i} className={styles.teamRow}>
-                  <div className={styles.teamInfo}>
-                    <span className={styles.teamName}>{t.name} <span className={styles.teamSpec}>({t.spec})</span></span>
-                    <span className={styles.teamVal} style={{ color: t.color }}>{t.val}%</span>
-                  </div>
-                  <div className={styles.utilTrack}>
-                    <div className={styles.utilFill} style={{ width: `${t.val}%`, backgroundColor: t.color }}></div>
-                  </div>
-                </div>
-              ))}
-            </div>
+            ))}
           </div>
         </div>
-
       </div>
-    </>
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+        <div style={{ display: 'flex', gap: '16px' }}>
+          <select 
+            value={statusFilter} 
+            onChange={e => setStatusFilter(e.target.value)}
+            style={{ padding: '10px', borderRadius: '8px', border: '1px solid #ccc' }}
+          >
+            <option value="All">All Statuses</option>
+            <option value="SCHEDULED">SCHEDULED</option>
+            <option value="IN PROGRESS">IN PROGRESS</option>
+          </select>
+          
+          <select 
+            value={typeFilter} 
+            onChange={e => setTypeFilter(e.target.value)}
+            style={{ padding: '10px', borderRadius: '8px', border: '1px solid #ccc' }}
+          >
+            <option value="All">All Types</option>
+            <option value="SCREED">SCREED</option>
+            <option value="HEATING">HEATING</option>
+            <option value="ELECTRICAL">ELECTRICAL</option>
+          </select>
+        </div>
+        
+        <button 
+          onClick={handleGenerateReport}
+          style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', backgroundColor: '#0f172a', color: 'white', borderRadius: '8px', border: 'none', cursor: 'pointer' }}
+        >
+          <Download size={20} /> Generate Report
+        </button>
+      </div>
+
+      <div style={{ backgroundColor: 'white', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', overflow: 'hidden', padding: '24px' }}>
+        <h3 style={{ marginTop: 0, marginBottom: '24px', fontSize: '18px', fontWeight: '600' }}>Capacity Overview (Orders per Week)</h3>
+        
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr>
+              <th style={{ textAlign: 'left', padding: '12px', borderBottom: '2px solid #e2e8f0', width: '200px' }}>Crew</th>
+              {sortedWeeks.map(week => (
+                <th key={week} style={{ textAlign: 'center', padding: '12px', borderBottom: '2px solid #e2e8f0' }}>{week}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {crews.map(crew => (
+              <tr key={crew.id}>
+                <td style={{ padding: '16px 12px', borderBottom: '1px solid #e2e8f0', fontWeight: '500' }}>{crew.name}</td>
+                {sortedWeeks.map(week => {
+                  const count = capacityData[crew.name]?.[week] || 0;
+                  return (
+                    <td key={week} style={{ padding: '16px 12px', borderBottom: '1px solid #e2e8f0', textAlign: 'center' }}>
+                      {count > 0 ? (
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                          <span style={{ fontWeight: 'bold' }}>{count}</span>
+                          <div style={{ width: '100%', height: '8px', backgroundColor: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
+                            <div style={{ width: `${Math.min(count * 20, 100)}%`, height: '100%', backgroundColor: crew.color || '#3b82f6' }}></div>
+                          </div>
+                        </div>
+                      ) : (
+                        <span style={{ color: '#94a3b8' }}>-</span>
+                      )}
+                    </td>
+                  )
+                })}
+              </tr>
+            ))}
+            {crews.length === 0 && (
+              <tr>
+                <td colSpan={sortedWeeks.length + 1} style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>No crews available.</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
   );
 }

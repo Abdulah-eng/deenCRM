@@ -1,105 +1,200 @@
-"use client";
-import React from 'react';
+'use client';
+import { useState, useEffect } from 'react';
 import Header from '@/components/layout/Header';
-import { DollarSign, FileText, Users, Download, Eye, Calendar, Plus } from 'lucide-react';
-import styles from './page.module.css';
+import { supabase } from '@/utils/supabase';
+import { Plus, Check, Trash2, X, Search, Users } from 'lucide-react';
 
-const settlements = [
-  { id: 'SET-2024-018', crew: 'Team Alpha', period: 'May 1-15', orders: 8, m2: '1,840 m²', material: '€ 14,720', crewCost: '€ 5,888', total: '€ 8,832', status: 'PAID' },
-  { id: 'SET-2024-017', crew: 'Team Beta', period: 'May 1-15', orders: 6, m2: '1,200 m²', material: '€ 10,800', crewCost: '€ 3,360', total: '€ 7,440', status: 'PAID' },
-  { id: 'SET-2024-016', crew: 'Team Gamma', period: 'May 1-15', orders: 5, m2: '980 m²', material: '€ 11,270', crewCost: '€ 4,200', total: '€ 7,070', status: 'PENDING' },
-  { id: 'SET-2024-015', crew: 'Team Delta', period: 'April 16-30', orders: 4, m2: '320 m²', material: '€ 4,800', crewCost: '€ 2,800', total: '€ 2,000', status: 'PENDING' },
-  { id: 'SET-2024-014', crew: 'Team Epsilon', period: 'April 16-30', orders: 3, m2: '210 m²', material: '€ 1,638', crewCost: '€ 784', total: '€ 854', status: 'DRAFT' },
-];
+export default function CrewSettlementsPage() {
+  const [settlements, setSettlements] = useState([]);
+  const [crews, setCrews] = useState([]);
+  const [orders, setOrders] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  const [formData, setFormData] = useState({
+    crew_id: '',
+    order_id: '',
+    amount: '',
+    settlement_date: '',
+    status: 'UNPAID'
+  });
 
-const STATUS_COLORS = {
-  'PAID': { bg: 'rgba(16,185,129,0.12)', color: '#10b981' },
-  'PENDING': { bg: 'rgba(245,158,11,0.12)', color: '#f59e0b' },
-  'DRAFT': { bg: 'rgba(161,165,183,0.12)', color: '#a1a5b7' },
-};
+  useEffect(() => {
+    fetchSettlements();
+    fetchCrews();
+    fetchOrders();
+  }, []);
 
-export default function CrewSettlements() {
+  const fetchSettlements = async () => {
+    const { data, error } = await supabase
+      .from('crew_settlements')
+      .select(`
+        *,
+        crews (name),
+        orders (
+          display_id,
+          customers (name)
+        )
+      `)
+      .order('created_at', { ascending: false });
+    if (!error) setSettlements(data || []);
+  };
+
+  const fetchCrews = async () => {
+    const { data, error } = await supabase.from('crews').select('id, name');
+    if (!error) setCrews(data || []);
+  };
+
+  const fetchOrders = async () => {
+    const { data, error } = await supabase.from('orders').select('id, display_id');
+    if (!error) setOrders(data || []);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const { error } = await supabase.from('crew_settlements').insert([{
+      ...formData,
+      amount: parseFloat(formData.amount)
+    }]);
+    if (!error) { setIsModalOpen(false); fetchSettlements(); }
+  };
+
+  const handleMarkAsPaid = async (id) => {
+    const { error } = await supabase.from('crew_settlements').update({ status: 'PAID' }).eq('id', id);
+    if (!error) fetchSettlements();
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm('Delete settlement?')) {
+      const { error } = await supabase.from('crew_settlements').delete().eq('id', id);
+      if (!error) fetchSettlements();
+    }
+  };
+
+  const filtered = settlements.filter(s => {
+    const matchesSearch = s.crews?.name?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'All' || s.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
+  const totalSettlements = settlements.reduce((a, s) => a + (s.amount || 0), 0);
+  const totalUnpaid = settlements.filter(s => s.status === 'UNPAID').reduce((a, s) => a + (s.amount || 0), 0);
+  const totalPaid = settlements.filter(s => s.status === 'PAID').reduce((a, s) => a + (s.amount || 0), 0);
+  const crewCount = new Set(settlements.map(s => s.crew_id)).size;
+
+  const styles = {
+    container: { padding: '20px' },
+    kpiGrid: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '20px' },
+    kpiCard: { padding: '20px', background: '#fff', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' },
+    controls: { display: 'flex', gap: '15px', marginBottom: '20px', alignItems: 'center' },
+    searchBox: { display: 'flex', alignItems: 'center', background: '#fff', padding: '8px 12px', borderRadius: '4px', border: '1px solid #ddd' },
+    input: { border: 'none', outline: 'none', marginLeft: '8px' },
+    select: { padding: '8px 12px', borderRadius: '4px', border: '1px solid #ddd' },
+    addButton: { padding: '8px 16px', background: '#0070f3', color: '#fff', border: 'none', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' },
+    table: { width: '100%', borderCollapse: 'collapse', background: '#fff' },
+    th: { textAlign: 'left', padding: '12px', borderBottom: '2px solid #eee' },
+    td: { padding: '12px', borderBottom: '1px solid #eee' },
+    modalOverlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center' },
+    modal: { background: '#fff', padding: '24px', borderRadius: '8px', width: '400px' },
+    modalHeader: { display: 'flex', justifyContent: 'space-between', marginBottom: '20px' },
+    formGroup: { marginBottom: '15px', display: 'flex', flexDirection: 'column', gap: '5px' },
+    submitBtn: { width: '100%', padding: '10px', background: '#0070f3', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }
+  };
+
   return (
-    <>
-      <Header title="Crew Settlements" subtitle="Crew Settlements" />
-      <div className={styles.container}>
-        <div className={styles.topBar}>
-          <div>
-            <h2 className={styles.title}>Crew Settlements</h2>
-            <p className={styles.desc}>Generate crew payment settlements from scheduling and completed orders.</p>
-          </div>
-          <button className="btn btn-primary" style={{ backgroundColor: '#f1416c', borderColor: '#f1416c' }}>
-            <Plus size={16} style={{ marginRight: 6 }} /> Generate Settlement
-          </button>
-        </div>
-
-        <div className={styles.kpiGrid}>
-          <div className="card"><div className={styles.kpiCard}>
-            <div className={styles.kpiIcon} style={{ background: 'rgba(16,185,129,0.1)', color: '#10b981' }}><DollarSign size={20} /></div>
-            <div><h2 className={styles.kpiVal}>€ 48,200</h2><p className={styles.kpiLabel}>Total Settled</p></div>
-          </div></div>
-          <div className="card"><div className={styles.kpiCard}>
-            <div className={styles.kpiIcon} style={{ background: 'rgba(245,158,11,0.1)', color: '#f59e0b' }}><FileText size={20} /></div>
-            <div><h2 className={styles.kpiVal}>€ 12,400</h2><p className={styles.kpiLabel}>Pending</p></div>
-          </div></div>
-          <div className="card"><div className={styles.kpiCard}>
-            <div className={styles.kpiIcon} style={{ background: 'rgba(241,65,108,0.1)', color: '#f1416c' }}><Calendar size={20} /></div>
-            <div><h2 className={styles.kpiVal}>€ 18,800</h2><p className={styles.kpiLabel}>This Month</p></div>
-          </div></div>
-          <div className="card"><div className={styles.kpiCard}>
-            <div className={styles.kpiIcon} style={{ background: 'rgba(59,130,246,0.1)', color: '#3b82f6' }}><Users size={20} /></div>
-            <div><h2 className={styles.kpiVal}>8</h2><p className={styles.kpiLabel}>Crews Paid</p></div>
-          </div></div>
-        </div>
-
-        <div className="card">
-          <div className={styles.tableHeader}>
-            <div className={styles.tableTitle}><FileText size={16} /> All Settlements</div>
-          </div>
-          <div className="table-container">
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th>SETTLEMENT #</th>
-                  <th>CREW</th>
-                  <th>PERIOD</th>
-                  <th>ORDERS</th>
-                  <th>M² DONE</th>
-                  <th>MATERIAL COST</th>
-                  <th>CREW COST</th>
-                  <th>TOTAL PAYOUT</th>
-                  <th>STATUS</th>
-                  <th>ACTIONS</th>
-                </tr>
-              </thead>
-              <tbody>
-                {settlements.map((s, i) => {
-                  const sc = STATUS_COLORS[s.status] || {};
-                  return (
-                    <tr key={i}>
-                      <td style={{ color: '#a1a5b7' }}>{s.id}</td>
-                      <td><strong>{s.crew}</strong></td>
-                      <td style={{ color: '#a1a5b7' }}>{s.period}</td>
-                      <td><strong>{s.orders}</strong></td>
-                      <td style={{ color: '#f1416c' }}>{s.m2}</td>
-                      <td style={{ color: '#a1a5b7' }}>{s.material}</td>
-                      <td style={{ color: '#a1a5b7' }}>{s.crewCost}</td>
-                      <td><strong style={{ color: '#10b981' }}>{s.total}</strong></td>
-                      <td><span className={styles.statusBadge} style={{ backgroundColor: sc.bg, color: sc.color }}>{s.status}</span></td>
-                      <td>
-                        <div className={styles.actions}>
-                          <button className={styles.actionBtn}><Eye size={13} color="#3b82f6" /></button>
-                          <button className={styles.actionBtn}><Download size={13} color="#a1a5b7" /></button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
+    <div style={styles.container}>
+      <Header title="Crew Settlements" />
+      
+      <div style={styles.kpiGrid}>
+        <div style={styles.kpiCard}><h3>Total Settlements</h3><p>€{totalSettlements.toFixed(2)}</p></div>
+        <div style={styles.kpiCard}><h3>Total Unpaid</h3><p>€{totalUnpaid.toFixed(2)}</p></div>
+        <div style={styles.kpiCard}><h3>Total Paid</h3><p>€{totalPaid.toFixed(2)}</p></div>
+        <div style={styles.kpiCard}><h3>Crew Count</h3><p>{crewCount}</p></div>
       </div>
-    </>
+
+      <div style={styles.controls}>
+        <div style={styles.searchBox}>
+          <Search size={20} />
+          <input style={styles.input} type="text" placeholder="Search crew name..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+        </div>
+        <select style={styles.select} value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
+          <option value="All">All Statuses</option>
+          <option value="UNPAID">Unpaid</option>
+          <option value="PAID">Paid</option>
+        </select>
+        <button style={styles.addButton} onClick={() => setIsModalOpen(true)}>
+          <Plus size={20} /> Generate Settlement
+        </button>
+      </div>
+
+      <table style={styles.table}>
+        <thead>
+          <tr>
+            <th style={styles.th}>#</th>
+            <th style={styles.th}>Crew</th>
+            <th style={styles.th}>Order</th>
+            <th style={styles.th}>Customer</th>
+            <th style={styles.th}>Amount</th>
+            <th style={styles.th}>Status</th>
+            <th style={styles.th}>Settlement Date</th>
+            <th style={styles.th}>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {filtered.map(s => (
+            <tr key={s.id}>
+              <td style={styles.td}>{s.id}</td>
+              <td style={styles.td}>{s.crews?.name || '-'}</td>
+              <td style={styles.td}>{s.orders?.display_id || '-'}</td>
+              <td style={styles.td}>{s.orders?.customers?.name || '-'}</td>
+              <td style={styles.td}>€{s.amount}</td>
+              <td style={styles.td}>{s.status}</td>
+              <td style={styles.td}>{s.settlement_date}</td>
+              <td style={styles.td}>
+                {s.status === 'UNPAID' && <button onClick={() => handleMarkAsPaid(s.id)}><Check size={16} /></button>}
+                <button onClick={() => handleDelete(s.id)}><Trash2 size={16} /></button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      {isModalOpen && (
+        <div style={styles.modalOverlay}>
+          <div style={styles.modal}>
+            <div style={styles.modalHeader}>
+              <h2>New Settlement</h2>
+              <button onClick={() => setIsModalOpen(false)} style={{background:'none',border:'none',cursor:'pointer'}}><X size={24} /></button>
+            </div>
+            <form onSubmit={handleSubmit}>
+              <div style={styles.formGroup}>
+                <label>Crew</label>
+                <select style={styles.select} required value={formData.crew_id} onChange={e => setFormData({...formData, crew_id: e.target.value})}>
+                  <option value="">Select Crew...</option>
+                  {crews.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
+              </div>
+              <div style={styles.formGroup}>
+                <label>Order</label>
+                <select style={styles.select} required value={formData.order_id} onChange={e => setFormData({...formData, order_id: e.target.value})}>
+                  <option value="">Select Order...</option>
+                  {orders.map(o => <option key={o.id} value={o.id}>{o.display_id}</option>)}
+                </select>
+              </div>
+              <div style={styles.formGroup}>
+                <label>Amount (€)</label>
+                <input style={{...styles.input, border: '1px solid #ddd', padding: '8px'}} type="number" required step="0.01" value={formData.amount} onChange={e => setFormData({...formData, amount: e.target.value})} />
+              </div>
+              <div style={styles.formGroup}>
+                <label>Date</label>
+                <input style={{...styles.input, border: '1px solid #ddd', padding: '8px'}} type="date" required value={formData.settlement_date} onChange={e => setFormData({...formData, settlement_date: e.target.value})} />
+              </div>
+              <button type="submit" style={styles.submitBtn}>Save Settlement</button>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
