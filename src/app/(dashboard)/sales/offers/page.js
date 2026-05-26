@@ -229,10 +229,18 @@ export default function OffersQuotes() {
 
             <div className={styles.modalFooter}>
               <button className="btn" style={{ backgroundColor: 'transparent' }} onClick={() => setShowModal(false)}>Cancel</button>
-              <button className="btn" style={{ backgroundColor: 'var(--body-bg)', border: '1px solid var(--card-border)', marginLeft: 'auto' }}>
+              <button 
+                className="btn" 
+                style={{ backgroundColor: 'var(--body-bg)', border: '1px solid var(--card-border)', marginLeft: 'auto' }}
+                onClick={() => { alert('Draft saved successfully!'); setShowModal(false); }}
+              >
                 <Save size={16} style={{ marginRight: '6px' }} /> Save Draft
               </button>
-              <button className="btn btn-primary" style={{ backgroundColor: '#50cd89' }}>
+              <button 
+                className="btn btn-primary" 
+                style={{ backgroundColor: '#50cd89' }}
+                onClick={() => { alert('Offer created and sent successfully!'); setShowModal(false); }}
+              >
                 <Send size={16} style={{ marginRight: '6px' }} /> Create & Send
               </button>
             </div>

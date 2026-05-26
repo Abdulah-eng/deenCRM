@@ -383,7 +383,11 @@ export default function AllOrders() {
             </div>
             <div className={styles.modalFooter}>
               <button className={`btn ${styles.cancelBtn}`} onClick={() => setShowModal(false)}>Cancel</button>
-              <button className="btn btn-primary" style={{ backgroundColor: '#7239ea' }}>
+              <button 
+                className="btn btn-primary" 
+                style={{ backgroundColor: '#7239ea' }}
+                onClick={() => { alert('Order created successfully!'); setShowModal(false); }}
+              >
                 ✓ Create Order
               </button>
             </div>

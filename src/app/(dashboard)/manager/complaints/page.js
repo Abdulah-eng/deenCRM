@@ -159,29 +159,35 @@ export default function Complaints() {
         <div className={styles.overlay}>
           <div className={styles.modal}>
             <div className={styles.modalHeader}>
-              <h3><AlertCircle size={16} color="#f1416c" style={{ marginRight: 8 }} />Log New Complaint</h3>
-              <button className={styles.modalClose} onClick={() => setShowModal(false)}><X size={20} /></button>
+              <h3><AlertCircle size={18} color="#f1416c" /> Log New Complaint</h3>
+              <button className={styles.modalClose} onClick={() => setShowModal(false)}><X size={16} /></button>
             </div>
+
             <div className={styles.modalBody}>
-              <div className={styles.formRow}>
+              {/* Row 1: Order lookup */}
+              <div className={styles.formRow3}>
                 <div className={styles.formGroup}>
-                  <label>Original Order Number *</label>
+                  <label className={styles.formLabel}>Original Order Number <span className={styles.required}>*</span></label>
                   <input type="text" placeholder="e.g. ORD-2024-042" className={styles.formInput} />
                 </div>
                 <div className={styles.formGroup}>
-                  <label>Customer</label>
-                  <input type="text" placeholder="Auto-filled from order..." className={styles.formInput} readOnly style={{ backgroundColor: 'rgba(0,0,0,0.02)' }} />
+                  <label className={styles.formLabel}>Customer</label>
+                  <input type="text" placeholder="Auto-filled from order..." className={styles.formInput} readOnly />
                 </div>
                 <div className={styles.formGroup}>
-                  <label>Order Type</label>
-                  <input type="text" placeholder="Auto-filled from order..." className={styles.formInput} readOnly style={{ backgroundColor: 'rgba(0,0,0,0.02)' }} />
+                  <label className={styles.formLabel}>Order Type</label>
+                  <input type="text" placeholder="Auto-filled from order..." className={styles.formInput} readOnly />
                 </div>
               </div>
-              <div className={styles.formRow}>
+
+              <div className={styles.sectionDivider}><span>Complaint Details</span></div>
+
+              {/* Row 2: Cause + Date + Cost */}
+              <div className={styles.formRow3}>
                 <div className={styles.formGroup}>
-                  <label>Root Cause *</label>
+                  <label className={styles.formLabel}>Root Cause <span className={styles.required}>*</span></label>
                   <select className={styles.formInput}>
-                    <option>Select cause...</option>
+                    <option value="">Select cause...</option>
                     <option>Material Failure</option>
                     <option>Installation Error</option>
                     <option>Planning Error</option>
@@ -190,27 +196,32 @@ export default function Complaints() {
                   </select>
                 </div>
                 <div className={styles.formGroup}>
-                  <label>Reported Date</label>
+                  <label className={styles.formLabel}>Reported Date</label>
                   <input type="date" className={styles.formInput} />
                 </div>
                 <div className={styles.formGroup}>
-                  <label>Estimated Cost Impact (€)</label>
+                  <label className={styles.formLabel}>Cost Impact (€)</label>
                   <input type="number" defaultValue="0.00" className={styles.formInput} />
                 </div>
               </div>
-              <div className={styles.formGroup}>
-                <label>Issue Description *</label>
-                <textarea rows={4} placeholder="Describe the defect or problem in detail..." className={styles.formTextarea} />
-              </div>
-              <div className={styles.formGroup}>
-                <label>Proposed Solution / Next Steps</label>
-                <textarea rows={3} placeholder="How will this be fixed?" className={styles.formTextarea} />
+
+              {/* Row 3: Description */}
+              <div className={styles.formRow} style={{ marginBottom: 16 }}>
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>Issue Description <span className={styles.required}>*</span></label>
+                  <textarea rows={4} placeholder="Describe the defect or problem in detail..." className={styles.formTextarea} />
+                </div>
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>Proposed Solution / Next Steps</label>
+                  <textarea rows={4} placeholder="How will this be fixed?" className={styles.formTextarea} />
+                </div>
               </div>
             </div>
+
             <div className={styles.modalFooter}>
-              <button className={`btn ${styles.cancelBtn}`} onClick={() => setShowModal(false)}>Cancel</button>
-              <button className="btn btn-primary" style={{ backgroundColor: '#f1416c' }}>
-                ✓ Log Complaint
+              <button className={styles.cancelBtn} onClick={() => setShowModal(false)}>Cancel</button>
+              <button className={styles.submitBtn} onClick={() => { alert('Complaint logged successfully!'); setShowModal(false); }}>
+                <AlertCircle size={14} /> Log Complaint
               </button>
             </div>
           </div>
@@ -220,22 +231,16 @@ export default function Complaints() {
       {/* Delete Confirmation Modal */}
       {deleteTarget && (
         <div className={styles.overlay}>
-          <div className={styles.modal} style={{ maxWidth: '400px' }}>
-            <div className={styles.modalIcon} style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
-              <Trash2 size={48} color="#f1416c" />
+          <div className={styles.deleteModal}>
+            <div className={styles.modalIcon}>
+              <Trash2 size={32} color="#f1416c" />
             </div>
-            <h3 className={styles.modalTitle} style={{ textAlign: 'center' }}>Delete Confirmation</h3>
-            <p className={styles.modalDesc} style={{ textAlign: 'center', marginBottom: '16px' }}>
-              Are you sure you want to delete this complaint?
-            </p>
-            <p className={styles.modalWarn} style={{ textAlign: 'center', color: '#f1416c', marginBottom: '24px' }}>This action cannot be undone.</p>
-            <div className={styles.modalBtns} style={{ display: 'flex', justifyContent: 'center', gap: '12px' }}>
-              <button className={styles.cancelBtn} onClick={() => setDeleteTarget(null)}>
-                Cancel
-              </button>
-              <button className={styles.deleteBtn} onClick={confirmDelete}>
-                Yes, Delete
-              </button>
+            <h3 className={styles.modalTitle}>Delete Complaint?</h3>
+            <p className={styles.modalDesc}>Are you sure you want to delete this complaint?</p>
+            <p className={styles.modalWarn}>This action cannot be undone.</p>
+            <div className={styles.modalBtns}>
+              <button className={styles.cancelBtn} onClick={() => setDeleteTarget(null)}>Cancel</button>
+              <button className={styles.deleteBtn} onClick={confirmDelete}>Yes, Delete</button>
             </div>
           </div>
         </div>
