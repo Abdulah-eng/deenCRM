@@ -5,14 +5,14 @@ import { ChevronLeft, ChevronRight, Users, Calendar, X, Info } from 'lucide-reac
 import styles from './page.module.css';
 import { supabase } from '@/utils/supabase';
 
-const DAYS = ['MON 13', 'TUE 14', 'WED 15', 'THU 16', 'FRI 17'];
+const DAYS = ['MO 13', 'DI 14', 'MI 15', 'DO 16', 'FR 17'];
 const TIMES = ['07:00','08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00'];
 
 const crewRows = [
-  { name: 'Team Alpha', mon: 'ORD-2024-058 · Screed', monColor: '#3b82f6', tue: '—', wed: '—', thu: '—', fri: '—' },
-  { name: 'Team Beta',  mon: '—', tue: '—', wed: 'ORD-2024-060 · Screed', wedColor: '#3b82f6', thu: '—', fri: '—' },
-  { name: 'Team Gamma', mon: '—', tue: 'ORD-2024-059 · Heating', tueColor: '#10b981', wed: '—', thu: '—', fri: '—' },
-  { name: 'Team Delta', mon: '—', tue: '—', wed: '—', thu: 'ORD-2024-061 · Electrical', thuColor: '#f1416c', fri: '—' },
+  { name: 'Team Alpha', mon: 'ORD-2024-058 · Estrich', monColor: '#3b82f6', tue: '—', wed: '—', thu: '—', fri: '—' },
+  { name: 'Team Beta',  mon: '—', tue: '—', wed: 'ORD-2024-060 · Estrich', wedColor: '#3b82f6', thu: '—', fri: '—' },
+  { name: 'Team Gamma', mon: '—', tue: 'ORD-2024-059 · Heizung', tueColor: '#10b981', wed: '—', thu: '—', fri: '—' },
+  { name: 'Team Delta', mon: '—', tue: '—', wed: '—', thu: 'ORD-2024-061 · Elektro', thuColor: '#f1416c', fri: '—' },
 ];
 
 export default function ManagerScheduling() {
@@ -43,8 +43,8 @@ export default function ManagerScheduling() {
             day: dayIndex >= 0 && dayIndex <= 4 ? dayIndex : 0,
             startHour: o.start_hour || 7,
             span: o.span_hours || 1,
-            title: o.customers?.name || 'Unknown',
-            sub: `${o.type === 'SCREED' ? 'Screed' : o.type === 'HEATING' ? 'Heating' : 'Electrical'} · ${o.crews?.name || 'Unassigned'} · ${o.location || ''}`,
+            title: o.customers?.name || 'Unbekannt',
+            sub: `${o.type === 'SCREED' ? 'Estrich' : o.type === 'HEATING' ? 'Heizung' : 'Elektro'} · ${o.crews?.name || 'Nicht zugewiesen'} · ${o.location || ''}`,
             color: o.crews?.color ? `${o.crews.color}22` : '#fef3c7',
             border: o.crews?.color || '#f59e0b',
             text: o.crews?.color || '#92400e',
@@ -96,14 +96,14 @@ export default function ManagerScheduling() {
 
   return (
     <>
-      <Header title="Scheduling" subtitle="Scheduling" />
+      <Header title="Terminplanung" subtitle="Terminplanung" />
       <div className={styles.container}>
 
         {/* Page header */}
         <div className={styles.pageHeader}>
           <div>
-            <h2 className={styles.pageTitle}>Scheduling</h2>
-            <p className={styles.pageDesc}>Manage order appointments, assign crews, and view weekly schedule. Drag and drop appointments to reschedule.</p>
+            <h2 className={styles.pageTitle}>Terminplanung</h2>
+            <p className={styles.pageDesc}>Auftragstermine verwalten, Teams zuweisen und Wochenplan anzeigen. Ziehen Sie Termine per Drag & Drop, um sie zu verschieben.</p>
           </div>
         </div>
 
@@ -114,19 +114,19 @@ export default function ManagerScheduling() {
               className={`${styles.tabBtn} ${view === 'schedule' ? styles.tabActive : ''}`}
               onClick={() => setView('schedule')}
             >
-              <Calendar size={14} /> Schedule View
+              <Calendar size={14} /> Kalenderansicht
             </button>
             <button
               className={`${styles.tabBtn} ${view === 'crew' ? styles.tabActive : ''}`}
               onClick={() => setView('crew')}
             >
-              <Users size={14} /> Crew View
+              <Users size={14} /> Teamansicht
             </button>
           </div>
 
           <div className={styles.weekNav}>
             <button className={styles.navArrow}><ChevronLeft size={16} /></button>
-            <span className={styles.weekLabel}>Week 20 — May 2024</span>
+            <span className={styles.weekLabel}>Woche 20 — Mai 2024</span>
             <button className={styles.navArrow}><ChevronRight size={16} /></button>
           </div>
         </div>
@@ -135,7 +135,7 @@ export default function ManagerScheduling() {
         {toast && (
           <div className={styles.toast}>
             <Info size={14} color="#009ef7" />
-            <span>Drag and drop blocks to reschedule them directly in the database.</span>
+            <span>Ziehen Sie die Termine per Drag & Drop, um sie direkt in der Datenbank zu verschieben.</span>
             <button className={styles.toastClose} onClick={() => setToast(false)}><X size={13} /></button>
           </div>
         )}
@@ -144,12 +144,12 @@ export default function ManagerScheduling() {
         {view === 'schedule' && (
           <div className={`card ${styles.calendarCard}`}>
             {loading ? (
-               <div style={{ padding: '60px', textAlign: 'center', color: 'var(--body-text-muted)' }}>Loading schedule...</div>
+               <div style={{ padding: '60px', textAlign: 'center', color: 'var(--body-text-muted)' }}>Terminkalender wird geladen...</div>
             ) : (
               <div className={styles.calGrid}>
                 {/* Header row */}
                 <div className={styles.timeCol}>
-                  <div className={styles.cornerCell}>TIME</div>
+                  <div className={styles.cornerCell}>ZEIT</div>
                   {TIMES.map(t => (
                     <div key={t} className={styles.timeCell}>{t}</div>
                   ))}
@@ -206,7 +206,7 @@ export default function ManagerScheduling() {
               <table>
                 <thead>
                   <tr>
-                    <th style={{ minWidth: 160 }}>CREW</th>
+                    <th style={{ minWidth: 160 }}>TEAM</th>
                     {DAYS.map(d => <th key={d}>{d}</th>)}
                   </tr>
                 </thead>

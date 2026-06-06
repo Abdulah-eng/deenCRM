@@ -71,60 +71,67 @@ export default function CustomersPage() {
   const cancelBtnStyle = { padding: '9px 18px', borderRadius: 8, border: '1px solid var(--card-border)', background: 'var(--card-bg)', color: 'var(--body-text)', fontSize: 13, cursor: 'pointer' };
   const saveBtnStyle = { padding: '9px 18px', borderRadius: 8, border: 'none', background: '#7239ea', color: 'white', fontSize: 13, fontWeight: 600, cursor: 'pointer' };
 
+  const companyLabels = {
+    'All': 'Alle Unternehmen',
+    'Heating': 'Heiz Werke Süddeutschland',
+    'Screed': 'Estrich Werke Süddeutschland',
+    'Electrical': 'Elektro Werke Süddeutschland'
+  };
+
   return (
     <>
-      <Header title="Customers" subtitle="Admin / Customers" />
+      <Header title="Kunden" subtitle="Admin / Kunden" />
       <div className={styles.container}>
         <div className={styles.pageHeader}>
           <div>
-            <h2 className={styles.title}>Customer Database</h2>
-            <p className={styles.desc}>Manage customers with VAT §13b status and company assignments.</p>
+            <h2 className={styles.title}>Kundendatenbank</h2>
+            <p className={styles.desc}>Kunden mit USt. §13b Status und Firmenzuordnungen verwalten.</p>
           </div>
-          <button className={styles.addBtn} onClick={openAdd}><Plus size={16} /> Add Customer</button>
+          <button className={styles.addBtn} onClick={openAdd}><Plus size={16} /> Kunde hinzufügen</button>
         </div>
 
         <div className={styles.kpiGrid}>
-          <div className={styles.kpiCard}><div className={styles.kpiValue} style={{ color: '#7239ea' }}>{customers.length}</div><div className={styles.kpiLabel}>Total Customers</div></div>
-          <div className={styles.kpiCard}><div className={styles.kpiValue} style={{ color: '#50cd89' }}>{active}</div><div className={styles.kpiLabel}>Active</div></div>
-          <div className={styles.kpiCard}><div className={styles.kpiValue} style={{ color: '#f59e0b' }}>{exempt}</div><div className={styles.kpiLabel}>§13b Exempt</div></div>
-          <div className={styles.kpiCard}><div className={styles.kpiValue} style={{ color: '#7239ea' }}>{customers.length}</div><div className={styles.kpiLabel}>Total Listed</div></div>
+          <div className={styles.kpiCard}><div className={styles.kpiValue} style={{ color: '#7239ea' }}>{customers.length}</div><div className={styles.kpiLabel}>Gesamte Kunden</div></div>
+          <div className={styles.kpiCard}><div className={styles.kpiValue} style={{ color: '#50cd89' }}>{active}</div><div className={styles.kpiLabel}>Aktiv</div></div>
+          <div className={styles.kpiCard}><div className={styles.kpiValue} style={{ color: '#f59e0b' }}>{exempt}</div><div className={styles.kpiLabel}>§13b befreit</div></div>
+          <div className={styles.kpiCard}><div className={styles.kpiValue} style={{ color: '#7239ea' }}>{customers.length}</div><div className={styles.kpiLabel}>Insgesamt gelistet</div></div>
         </div>
 
         <div className={styles.tableCard}>
           <div className={styles.tableHeader}>
-            <div className={styles.tableTitle}><Users size={16} color="#7239ea" /> All Customers ({filtered.length})</div>
+            <div className={styles.tableTitle}><Users size={16} color="#7239ea" /> Alle Kunden ({filtered.length})</div>
             <div className={styles.tableActions}>
               <div className={styles.searchBox}>
                 <Search size={14} className={styles.searchIcon} />
-                <input type="text" placeholder="Search customers..." value={search} onChange={e => setSearch(e.target.value)} />
+                <input type="text" placeholder="Kunden suchen..." value={search} onChange={e => setSearch(e.target.value)} />
               </div>
               <select className={styles.companySelect} value={companyFilter} onChange={e => setCompanyFilter(e.target.value)}>
-                <option value="All">All Companies</option>
-                <option value="Heating">Heating Works</option>
-                <option value="Screed">Screed Works</option>
-                <option value="Electrical">Electrical Works</option>
+                <option value="All">Alle Unternehmen</option>
+                <option value="Heating">Heiz Werke Süddeutschland</option>
+                <option value="Screed">Estrich Werke Süddeutschland</option>
+                <option value="Electrical">Elektro Werke Süddeutschland</option>
               </select>
             </div>
           </div>
           <div className={styles.tableContainer}>
             {loading ? (
-              <div style={{ padding: 40, textAlign: 'center', color: 'var(--body-text-muted)' }}>Loading customers...</div>
+              <div style={{ padding: 40, textAlign: 'center', color: 'var(--body-text-muted)' }}>Kunden werden geladen...</div>
             ) : (
               <table className={styles.table}>
                 <thead>
                   <tr>
                     <th style={{ width: 40 }}>#</th>
-                    <th>COMPANY NAME</th>
-                    <th>CONTACT</th>
-                    <th>CITY</th>
-                    <th>§13B VAT</th>
-                    <th>ASSIGNED TO</th>
+                    <th>UNTERNEHMENSNAME</th>
+                    <th>KONTAKTPERSON</th>
+                    <th>STADT</th>
+                    <th>§13B USt.</th>
+                    <th>ZUGEORDNET ZU</th>
                     <th>STATUS</th>
-                    <th>ACTIONS</th>
+                    <th>AKTIONEN</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.length === 0 && <tr><td colSpan="8" style={{ textAlign: 'center', padding: 20, color: 'var(--body-text-muted)' }}>No customers found.</td></tr>}
+                  {filtered.length === 0 && <tr><td colSpan="8" style={{ textAlign: 'center', padding: 20, color: 'var(--body-text-muted)' }}>Keine Kunden gefunden.</td></tr>}
                   {filtered.map((c, index) => (
                     <tr key={c.id}>
                       <td style={{ color: '#a1a5b7' }}>{index + 1}.</td>
@@ -133,12 +140,14 @@ export default function CustomersPage() {
                       <td><span className={styles.cellPrimary}>{c.city}</span></td>
                       <td>
                         <span className={`${styles.badge} ${c.vat13b ? styles.badgeYellow : styles.badgeGray}`}>
-                          {c.vat13b ? '§13B EXEMPT' : 'STANDARD VAT'}
+                          {c.vat13b ? '§13B BEFREIT' : 'STANDARD-UST.'}
                         </span>
                       </td>
-                      <td><span className={styles.cellPrimary}>{c.assigned_company || '—'}</span></td>
+                      <td><span className={styles.cellPrimary}>{companyLabels[c.assigned_company] || c.assigned_company || '—'}</span></td>
                       <td>
-                        <span className={c.status === 'ACTIVE' ? styles.badgeGreen : styles.badgeRed}>{c.status}</span>
+                        <span className={c.status === 'ACTIVE' ? styles.badgeGreen : styles.badgeRed}>
+                          {c.status === 'ACTIVE' ? 'AKTIV' : 'INAKTIV'}
+                        </span>
                       </td>
                       <td>
                         <div className={styles.actionWrapper}>
@@ -161,48 +170,48 @@ export default function CustomersPage() {
           <div style={modalBox}>
             <div style={modalHeader}>
               <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8 }}>
-                <Plus size={16} color="#7239ea" /> {editTarget ? 'Edit Customer' : 'Add New Customer'}
+                <Plus size={16} color="#7239ea" /> {editTarget ? 'Kunde bearbeiten' : 'Neuen Kunden hinzufügen'}
               </h3>
               <button style={closeBtn} onClick={() => setShowModal(false)}><X size={16} /></button>
             </div>
             <div style={modalBody}>
               <div style={row}>
-                <div style={group}><label style={label}>Company Name *</label><input style={input} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Company name..." /></div>
-                <div style={group}><label style={label}>Email</label><input style={input} type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="email@company.de" /></div>
+                <div style={group}><label style={label}>Firmenname *</label><input style={input} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Firmenname..." /></div>
+                <div style={group}><label style={label}>E-Mail-Adresse</label><input style={input} type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="email@firma.de" /></div>
               </div>
               <div style={row}>
-                <div style={group}><label style={label}>Contact Person</label><input style={input} value={form.contact} onChange={e => setForm({ ...form, contact: e.target.value })} placeholder="Full name..." /></div>
-                <div style={group}><label style={label}>Phone</label><input style={input} value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} placeholder="+49 89 ..." /></div>
+                <div style={group}><label style={label}>Kontaktperson</label><input style={input} value={form.contact} onChange={e => setForm({ ...form, contact: e.target.value })} placeholder="Vollständiger Name..." /></div>
+                <div style={group}><label style={label}>Telefon</label><input style={input} value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} placeholder="+49 89 ..." /></div>
               </div>
               <div style={row}>
-                <div style={group}><label style={label}>City</label><input style={input} value={form.city} onChange={e => setForm({ ...form, city: e.target.value })} placeholder="Munich..." /></div>
-                <div style={group}><label style={label}>Assigned Company</label>
+                <div style={group}><label style={label}>Stadt</label><input style={input} value={form.city} onChange={e => setForm({ ...form, city: e.target.value })} placeholder="München..." /></div>
+                <div style={group}><label style={label}>Zugeordnetes Unternehmen</label>
                   <select style={input} value={form.assigned_company} onChange={e => setForm({ ...form, assigned_company: e.target.value })}>
-                    <option value="All">All Companies</option>
-                    <option value="Heating">Heating Works</option>
-                    <option value="Screed">Screed Works</option>
-                    <option value="Electrical">Electrical Works</option>
+                    <option value="All">Alle Unternehmen</option>
+                    <option value="Heating">Heiz Werke Süddeutschland</option>
+                    <option value="Screed">Estrich Werke Süddeutschland</option>
+                    <option value="Electrical">Elektro Werke Süddeutschland</option>
                   </select>
                 </div>
               </div>
               <div style={row}>
-                <div style={group}><label style={label}>§13b VAT Exempt</label>
+                <div style={group}><label style={label}>§13b USt.-Befreiung</label>
                   <select style={input} value={form.vat13b} onChange={e => setForm({ ...form, vat13b: e.target.value === 'true' })}>
-                    <option value="false">No (Standard VAT 19%)</option>
-                    <option value="true">Yes (§13b Exempt)</option>
+                    <option value="false">Nein (Standard 19% USt.)</option>
+                    <option value="true">Ja (§13b befreit)</option>
                   </select>
                 </div>
                 <div style={group}><label style={label}>Status</label>
                   <select style={input} value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}>
-                    <option value="ACTIVE">Active</option>
-                    <option value="INACTIVE">Inactive</option>
+                    <option value="ACTIVE">Aktiv</option>
+                    <option value="INACTIVE">Inaktiv</option>
                   </select>
                 </div>
               </div>
             </div>
             <div style={modalFooter}>
-              <button style={cancelBtnStyle} onClick={() => setShowModal(false)}>Cancel</button>
-              <button style={saveBtnStyle} onClick={handleSave} disabled={saving}>{saving ? 'Saving...' : (editTarget ? 'Save Changes' : 'Add Customer')}</button>
+              <button style={cancelBtnStyle} onClick={() => setShowModal(false)}>Abbrechen</button>
+              <button style={saveBtnStyle} onClick={handleSave} disabled={saving}>{saving ? 'Speichern...' : (editTarget ? 'Änderungen speichern' : 'Kunden hinzufügen')}</button>
             </div>
           </div>
         </div>
@@ -213,11 +222,11 @@ export default function CustomersPage() {
         <div style={overlay}>
           <div style={{ ...modalBox, maxWidth: 380, padding: 36, textAlign: 'center' }}>
             <Trash2 size={48} color="#f1416c" style={{ marginBottom: 16 }} />
-            <h3 style={{ margin: '0 0 8px', fontSize: 18 }}>Delete Customer?</h3>
-            <p style={{ color: 'var(--body-text-muted)', marginBottom: 24 }}>This action cannot be undone.</p>
+            <h3 style={{ margin: '0 0 8px', fontSize: 18 }}>Kunden löschen?</h3>
+            <p style={{ color: 'var(--body-text-muted)', marginBottom: 24 }}>Diese Aktion kann nicht rückgängig gemacht werden.</p>
             <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
-              <button style={cancelBtnStyle} onClick={() => setDeleteTarget(null)}>Cancel</button>
-              <button style={{ ...saveBtnStyle, background: '#f1416c' }} onClick={handleDelete}>Yes, Delete</button>
+              <button style={cancelBtnStyle} onClick={() => setDeleteTarget(null)}>Abbrechen</button>
+              <button style={{ ...saveBtnStyle, background: '#f1416c' }} onClick={handleDelete}>Ja, löschen</button>
             </div>
           </div>
         </div>

@@ -81,34 +81,34 @@ export default function FinanceDashboard() {
   }, []);
 
   const summaryCards = [
-    { title: 'Total Revenue', value: `€ ${stats.revenue.toLocaleString()}`, subtext: 'Live from DB', icon: <TrendingUp size={20} color="#f1416c" />, bg: 'rgba(241, 65, 108, 0.1)' },
-    { title: 'Total Costs', value: `€ ${stats.costs.toLocaleString()}`, subtext: 'Live from DB', icon: <BarChart3 size={20} color="#ffc700" />, bg: 'rgba(255, 199, 0, 0.1)' },
-    { title: 'Gross Margin', value: `€ ${stats.margin.toLocaleString()}`, subtext: `${stats.marginPercent}%`, icon: <TrendingUp size={20} color="#50cd89" />, bg: 'rgba(80, 205, 137, 0.1)' },
-    { title: 'Overdue Invoices', value: `€ ${stats.overdueAmount.toLocaleString()}`, subtext: `${stats.overdueCount} invoices`, icon: <AlertCircle size={20} color="#f1416c" />, bg: 'rgba(241, 65, 108, 0.1)' },
-    { title: 'Pending Invoices', value: `€ ${stats.pendingAmount.toLocaleString()}`, subtext: `${stats.pendingCount} invoices`, icon: <Clock size={20} color="#009ef7" />, bg: 'rgba(0, 158, 247, 0.1)' },
-    { title: 'Crew Settlements', value: `€ ${stats.settlementsAmount.toLocaleString()}`, subtext: 'Unpaid', icon: <Users size={20} color="#7239ea" />, bg: 'rgba(114, 57, 234, 0.1)' },
+    { title: 'Gesamtumsatz', value: `€ ${stats.revenue.toLocaleString('de-DE')}`, subtext: 'Live aus der DB', icon: <TrendingUp size={20} color="#f1416c" />, bg: 'rgba(241, 65, 108, 0.1)' },
+    { title: 'Gesamtkosten', value: `€ ${stats.costs.toLocaleString('de-DE')}`, subtext: 'Live aus der DB', icon: <BarChart3 size={20} color="#ffc700" />, bg: 'rgba(255, 199, 0, 0.1)' },
+    { title: 'Deckungsbeitrag', value: `€ ${stats.margin.toLocaleString('de-DE')}`, subtext: `${stats.marginPercent}%`, icon: <TrendingUp size={20} color="#50cd89" />, bg: 'rgba(80, 205, 137, 0.1)' },
+    { title: 'Überfällige Rechnungen', value: `€ ${stats.overdueAmount.toLocaleString('de-DE')}`, subtext: `${stats.overdueCount} Rechnungen`, icon: <AlertCircle size={20} color="#f1416c" />, bg: 'rgba(241, 65, 108, 0.1)' },
+    { title: 'Offene Rechnungen', value: `€ ${stats.pendingAmount.toLocaleString('de-DE')}`, subtext: `${stats.pendingCount} Rechnungen`, icon: <Clock size={20} color="#009ef7" />, bg: 'rgba(0, 158, 247, 0.1)' },
+    { title: 'Team-Abrechnungen', value: `€ ${stats.settlementsAmount.toLocaleString('de-DE')}`, subtext: 'Ausstehend', icon: <Users size={20} color="#7239ea" />, bg: 'rgba(114, 57, 234, 0.1)' },
   ];
 
   return (
     <>
-      <Header title="Finance Dashboard" subtitle="Finance | Finance Dashboard" />
+      <Header title="Finanz-Dashboard" subtitle="Finanzen | Dashboard" />
       <div className={styles.container}>
         <div className={styles.header}>
           <div className={styles.headerLeft}>
-            <h1 className={styles.pageTitle}>Finance Dashboard <BarChart3 size={20} color="#009ef7" /></h1>
-            <p className={styles.description}>Financial overview — revenue, costs, margins, and settlements.</p>
+            <h1 className={styles.pageTitle}>Finanz-Dashboard <BarChart3 size={20} color="#009ef7" /></h1>
+            <p className={styles.description}>Finanzübersicht — Umsatz, Kosten, Margen und Abrechnungen.</p>
           </div>
           <div className={styles.headerRight}>
-            <span className={styles.monthText}>May 2024</span>
+            <span className={styles.monthText}>Mai 2024</span>
             <button className="btn btn-primary" style={{ backgroundColor: '#f1416c' }}>
-              <Download size={16} style={{ marginRight: '8px' }} /> Export
+              <Download size={16} style={{ marginRight: '8px' }} /> Exportieren
             </button>
           </div>
         </div>
 
         <div className={styles.statsGrid}>
           {loading ? (
-             <div style={{ padding: '20px', gridColumn: '1 / -1', textAlign: 'center' }}>Loading data...</div>
+             <div style={{ padding: '20px', gridColumn: '1 / -1', textAlign: 'center' }}>Daten werden geladen...</div>
           ) : summaryCards.map((card, idx) => (
             <div key={idx} className={styles.statCard}>
               <div className={styles.statIcon} style={{ backgroundColor: card.bg }}>
@@ -125,15 +125,14 @@ export default function FinanceDashboard() {
           {/* Bar Chart Section */}
           <div className="card">
             <div className={styles.chartHeader}>
-              <h3>Revenue vs Costs vs Margin (Monthly)</h3>
+              <h3>Umsatz vs. Kosten vs. Deckungsbeitrag (Monatlich)</h3>
               <div className={styles.chartLegend}>
-                <span className={styles.legendItem}><span className={styles.legendColor} style={{ backgroundColor: '#f1416c' }}></span> Revenue</span>
-                <span className={styles.legendItem}><span className={styles.legendColor} style={{ backgroundColor: '#f8d7da' }}></span> Costs</span>
-                <span className={styles.legendItem}><span className={styles.legendColor} style={{ backgroundColor: '#50cd89', height: '3px', width: '20px' }}></span> Margin</span>
+                <span className={styles.legendItem}><span className={styles.legendColor} style={{ backgroundColor: '#f1416c' }}></span> Umsatz</span>
+                <span className={styles.legendItem}><span className={styles.legendColor} style={{ backgroundColor: '#f8d7da' }}></span> Kosten</span>
+                <span className={styles.legendItem}><span className={styles.legendColor} style={{ backgroundColor: '#50cd89', height: '3px', width: '20px' }}></span> Deckungsbeitrag</span>
               </div>
             </div>
             <div className={styles.barChartContainer}>
-              {/* CSS Custom Bar Chart (Kept Static for Visuals) */}
               <div className={styles.yAxis}>
                 <span>€500K</span><span>€400K</span><span>€300K</span><span>€200K</span><span>€100K</span><span>€0K</span>
               </div>
@@ -147,7 +146,7 @@ export default function FinanceDashboard() {
                   <circle cx="75" cy="64" r="2" fill="white" stroke="#50cd89" strokeWidth="1" />
                   <circle cx="92" cy="62" r="2" fill="white" stroke="#50cd89" strokeWidth="1" />
                 </svg>
-                {['Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May'].map((month, idx) => {
+                {['Dez', 'Jan', 'Feb', 'Mär', 'Apr', 'Mai'].map((month, idx) => {
                   const revHeight = [75, 80, 82, 85, 95, 98][idx];
                   const costHeight = [55, 60, 62, 65, 70, 75][idx];
                   return (
@@ -167,7 +166,7 @@ export default function FinanceDashboard() {
           {/* Donut Chart Section */}
           <div className="card">
             <div className={styles.chartHeader}>
-              <h3>Revenue by Company (Static Visual)</h3>
+              <h3>Umsatz nach Unternehmen (Statische Übersicht)</h3>
             </div>
             <div className={styles.donutChartContainer}>
               <div className={styles.donutChart}>
@@ -179,16 +178,16 @@ export default function FinanceDashboard() {
               </div>
               <div className={styles.donutLegend}>
                 <div className={styles.legendRow}>
-                  <span><span className={styles.legendColor} style={{ backgroundColor: '#f1416c', borderRadius: '50%' }}></span> Heating Works</span>
-                  <strong>€ 198,400 (40.8%)</strong>
+                  <span><span className={styles.legendColor} style={{ backgroundColor: '#f1416c', borderRadius: '50%' }}></span> Heiz Werke Süddeutschland</span>
+                  <strong>€ 198.400 (40,8%)</strong>
                 </div>
                 <div className={styles.legendRow}>
-                  <span><span className={styles.legendColor} style={{ backgroundColor: '#ffc700', borderRadius: '50%' }}></span> Screed Works</span>
-                  <strong>€ 162,800 (33.5%)</strong>
+                  <span><span className={styles.legendColor} style={{ backgroundColor: '#ffc700', borderRadius: '50%' }}></span> Estrich Werke Süddeutschland</span>
+                  <strong>€ 162.800 (33,5%)</strong>
                 </div>
                 <div className={styles.legendRow}>
-                  <span><span className={styles.legendColor} style={{ backgroundColor: '#50cd89', borderRadius: '50%' }}></span> Electrical</span>
-                  <strong>€ 125,200 (25.7%)</strong>
+                  <span><span className={styles.legendColor} style={{ backgroundColor: '#50cd89', borderRadius: '50%' }}></span> Elektro Werke Süddeutschland</span>
+                  <strong>€ 125.200 (25,7%)</strong>
                 </div>
               </div>
             </div>

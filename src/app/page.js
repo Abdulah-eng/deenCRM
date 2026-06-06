@@ -2,8 +2,8 @@ import Link from 'next/link';
 import styles from './page.module.css';
 
 export const metadata = {
-  title: 'ProCRM — Smart Operations Management',
-  description: 'The all-in-one CRM platform for managing orders, crews, finances, and sales — built for modern field service companies.',
+  title: 'ProCRM — Intelligentes Betriebsmanagement',
+  description: 'Die All-in-One CRM-Plattform für die Verwaltung von Aufträgen, Teams, Finanzen und Vertrieb — entwickelt für moderne Außendienstunternehmen.',
 };
 
 export default function HomePage() {
@@ -13,21 +13,18 @@ export default function HomePage() {
       {/* NAV */}
       <nav className={styles.nav}>
         <div className={styles.navBrand}>
-          <div className={styles.navLogo}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
-              <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
-            </svg>
+          <div className={styles.navLogo} style={{ background: 'transparent', width: 'auto', height: 'auto', display: 'flex', alignItems: 'center' }}>
+            <img src="/logo.png" alt="ProCRM Logo" style={{ maxHeight: '28px', objectFit: 'contain' }} />
           </div>
           <span className={styles.navBrandName}>ProCRM</span>
         </div>
         <div className={styles.navLinks}>
-          <a href="#features" className={styles.navLink}>Features</a>
-          <a href="#roles" className={styles.navLink}>Roles</a>
-          <a href="#about" className={styles.navLink}>About</a>
+          <a href="#features" className={styles.navLink}>Funktionen</a>
+          <a href="#roles" className={styles.navLink}>Rollen</a>
+          <a href="#about" className={styles.navLink}>Über uns</a>
         </div>
         <Link href="/login" className={styles.navCta}>
-          Sign In →
+          Anmelden →
         </Link>
       </nav>
 
@@ -35,22 +32,22 @@ export default function HomePage() {
       <section className={styles.hero}>
         <div className={styles.heroBadge}>
           <span className={styles.heroBadgeDot}></span>
-          Multi-Role Operations Platform
+          Multi-Rollen Betriebsplattform
         </div>
         <h1 className={styles.heroTitle}>
-          Manage Your Business<br />
-          <span className={styles.heroGradient}>From One Dashboard</span>
+          Verwalten Sie Ihr Geschäft<br />
+          <span className={styles.heroGradient}>Von einem einzigen Dashboard</span>
         </h1>
         <p className={styles.heroDesc}>
-          ProCRM gives every role — Admins, Managers, Finance, Sales, and Crew — their own tailored dashboard. Stay in control of orders, crews, invoices, and capacity in real time.
+          ProCRM bietet jeder Rolle — Admins, Managern, Finanzen, Vertrieb und Teams — ein maßgeschneidertes Dashboard. Behalten Sie die Kontrolle über Aufträge, Teams, Rechnungen und Kapazitäten in Echtzeit.
         </p>
         <div className={styles.heroActions}>
           <Link href="/login" className={styles.heroPrimary}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-            Access Dashboard
+            Zum Dashboard
           </Link>
           <a href="#features" className={styles.heroSecondary}>
-            See Features
+            Funktionen ansehen
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
           </a>
         </div>
@@ -59,15 +56,15 @@ export default function HomePage() {
         <div className={styles.heroStats}>
           <div className={styles.statCard}>
             <span className={styles.statNum}>5</span>
-            <span className={styles.statLabel}>Role Panels</span>
+            <span className={styles.statLabel}>Rollen-Panels</span>
           </div>
           <div className={styles.statCard}>
             <span className={styles.statNum}>30+</span>
-            <span className={styles.statLabel}>Pages & Views</span>
+            <span className={styles.statLabel}>Seiten & Ansichten</span>
           </div>
           <div className={styles.statCard}>
             <span className={styles.statNum}>100%</span>
-            <span className={styles.statLabel}>Custom Built</span>
+            <span className={styles.statLabel}>Maßgeschneidert</span>
           </div>
         </div>
       </section>
@@ -77,7 +74,7 @@ export default function HomePage() {
         <div className={styles.previewCard} style={{'--accent': '#7239ea'}}>
           <div className={styles.previewHeader}>
             <div className={styles.previewDot} style={{background:'#7239ea'}}></div>
-            <span>Admin Panel</span>
+            <span>Admin-Panel</span>
           </div>
           <div className={styles.previewLines}>
             <div className={styles.pLine} style={{width:'80%'}}></div>
@@ -88,7 +85,7 @@ export default function HomePage() {
         <div className={styles.previewCard} style={{'--accent': '#009ef7'}}>
           <div className={styles.previewHeader}>
             <div className={styles.previewDot} style={{background:'#009ef7'}}></div>
-            <span>Manager Panel</span>
+            <span>Manager-Panel</span>
           </div>
           <div className={styles.previewLines}>
             <div className={styles.pLine} style={{width:'70%'}}></div>
@@ -99,7 +96,7 @@ export default function HomePage() {
         <div className={styles.previewCard} style={{'--accent': '#c92a42'}}>
           <div className={styles.previewHeader}>
             <div className={styles.previewDot} style={{background:'#c92a42'}}></div>
-            <span>Finance Panel</span>
+            <span>Finanz-Panel</span>
           </div>
           <div className={styles.previewLines}>
             <div className={styles.pLine} style={{width:'90%'}}></div>
@@ -110,7 +107,7 @@ export default function HomePage() {
         <div className={styles.previewCard} style={{'--accent': '#10b981'}}>
           <div className={styles.previewHeader}>
             <div className={styles.previewDot} style={{background:'#10b981'}}></div>
-            <span>Sales Panel</span>
+            <span>Vertriebs-Panel</span>
           </div>
           <div className={styles.previewLines}>
             <div className={styles.pLine} style={{width:'75%'}}></div>
@@ -121,7 +118,7 @@ export default function HomePage() {
         <div className={styles.previewCard} style={{'--accent': '#f97316'}}>
           <div className={styles.previewHeader}>
             <div className={styles.previewDot} style={{background:'#f97316'}}></div>
-            <span>Crew Portal</span>
+            <span>Mitarbeiter-Portal</span>
           </div>
           <div className={styles.previewLines}>
             <div className={styles.pLine} style={{width:'60%'}}></div>
@@ -133,16 +130,16 @@ export default function HomePage() {
 
       {/* FEATURES */}
       <section id="features" className={styles.features}>
-        <h2 className={styles.sectionTitle}>Everything Your Team Needs</h2>
-        <p className={styles.sectionDesc}>One platform, perfectly tailored for every role in your organization.</p>
+        <h2 className={styles.sectionTitle}>Alles, was Ihr Team braucht</h2>
+        <p className={styles.sectionDesc}>Eine Plattform, perfekt zugeschnitten auf jede Rolle in Ihrem Unternehmen.</p>
         <div className={styles.featureGrid}>
           {[
-            { icon: '📋', title: 'Order Management', desc: 'Track every order from creation to completion with real-time status updates and crew assignments.' },
-            { icon: '👥', title: 'Crew Management', desc: 'Manage team members, schedules, and capacity. Assign jobs and track utilization by team.' },
-            { icon: '💰', title: 'Finance & Invoicing', desc: 'Full invoice lifecycle management with VAT tracking, post-calculation, and crew settlements.' },
-            { icon: '📊', title: 'Analytics & Reports', desc: 'Revenue trends, margin analysis, capacity planning, and key performance indicators at a glance.' },
-            { icon: '🗓️', title: 'Smart Scheduling', desc: 'Visual weekly scheduling with conflict detection and crew availability planning tools.' },
-            { icon: '💼', title: 'Sales Pipeline', desc: 'Manage offers, quotes, and conversion funnels. Track your pipeline from first contact to closed deal.' },
+            { icon: '📋', title: 'Auftragsverwaltung', desc: 'Verfolgen Sie jeden Auftrag von der Erstellung bis zum Abschluss mit Statusaktualisierungen und Teamzuweisungen in Echtzeit.' },
+            { icon: '👥', title: 'Mitarbeiterverwaltung', desc: 'Verwalten Sie Teammitglieder, Zeitpläne und Kapazitäten. Weisen Sie Aufträge zu und verfolgen Sie die Auslastung pro Team.' },
+            { icon: '💰', title: 'Finanzen & Rechnungsstellung', desc: 'Vollständiges Rechnungsmanagement mit USt-Verfolgung, Nachkalkulation und Abrechnung der Teams.' },
+            { icon: '📊', title: 'Analysen & Berichte', desc: 'Umsatztrends, Margenanalysen, Kapazitätsplanung und wichtige Leistungskennzahlen auf einen Blick.' },
+            { icon: '🗓️', title: 'Intelligente Terminplanung', desc: 'Visuelle Wochenplanung mit Konflikterkennung und Planwerkzeugen für die Verfügbarkeit der Teams.' },
+            { icon: '💼', title: 'Vertriebs-Pipeline', desc: 'Verwalten Sie Angebote, Kostenvoranschläge und Vertriebstrichter. Verfolgen Sie Ihre Pipeline vom Erstkontakt bis zum Abschluss.' },
           ].map((f, i) => (
             <div key={i} className={styles.featureCard}>
               <div className={styles.featureIcon}>{f.icon}</div>
@@ -155,15 +152,15 @@ export default function HomePage() {
 
       {/* ROLES */}
       <section id="roles" className={styles.roles}>
-        <h2 className={styles.sectionTitle}>Built for Every Role</h2>
-        <p className={styles.sectionDesc}>Each user gets a dashboard designed specifically for their responsibilities.</p>
+        <h2 className={styles.sectionTitle}>Für jede Rolle entwickelt</h2>
+        <p className={styles.sectionDesc}>Jeder Benutzer erhält ein Dashboard, das speziell für seine Aufgaben entwickelt wurde.</p>
         <div className={styles.rolesGrid}>
           {[
-            { color: '#7239ea', label: 'Administrator', icon: '🛡️', perks: ['Full system access', 'User & role management', 'Company & module settings', 'System audit logs'] },
-            { color: '#009ef7', label: 'Manager', icon: '📌', perks: ['Live operations overview', 'Order & crew scheduling', 'Capacity planning', 'Key performance analytics'] },
-            { color: '#c92a42', label: 'Finance', icon: '🧾', perks: ['Invoice management', 'Actual cost tracking', 'Post-calculation', 'Crew settlements'] },
-            { color: '#10b981', label: 'Sales', icon: '📈', perks: ['Offers & quotes pipeline', 'Customer management', 'Subsidy calculator', 'Invoice overview'] },
-            { color: '#f97316', label: 'Crew', icon: '🔧', perks: ['My orders & schedule', 'Status updates', 'Completion reports', 'Team info'] },
+            { color: '#7239ea', label: 'Administrator', icon: '🛡️', perks: ['Vollständiger Systemzugriff', 'Benutzer- & Rollenverwaltung', 'Unternehmens- & Moduleinstellungen', 'System-Aktivitätsprotokolle'] },
+            { color: '#009ef7', label: 'Manager', icon: '📌', perks: ['Echtzeit-Betriebsübersicht', 'Auftrags- & Terminplanung', 'Kapazitätsplanung', 'Leistungsanalysen'] },
+            { color: '#c92a42', label: 'Finanzen', icon: '🧾', perks: ['Rechnungsverwaltung', 'Ist-Kosten-Verfolgung', 'Nachkalkulation', 'Abrechnung der Teams'] },
+            { color: '#10b981', label: 'Vertrieb', icon: '📈', perks: ['Angebots-Pipeline', 'Kundenverwaltung', 'Förderungsrechner', 'Rechnungsübersicht'] },
+            { color: '#f97316', label: 'Montageteam', icon: '🔧', perks: ['Meine Aufträge & Zeitplan', 'Statusaktualisierungen', 'Fertigstellungsmeldungen', 'Teaminformationen'] },
           ].map((r, i) => (
             <div key={i} className={styles.roleCard} style={{'--rc': r.color}}>
               <div className={styles.roleIconWrap} style={{background:`${r.color}20`}}>
@@ -179,7 +176,7 @@ export default function HomePage() {
                 ))}
               </ul>
               <Link href="/login" className={styles.roleBtn} style={{background: r.color}}>
-                Enter Dashboard →
+                Zum Dashboard →
               </Link>
             </div>
           ))}
@@ -189,26 +186,23 @@ export default function HomePage() {
       {/* CTA BANNER */}
       <section className={styles.cta}>
         <div className={styles.ctaGlow}></div>
-        <h2 className={styles.ctaTitle}>Ready to Get Started?</h2>
-        <p className={styles.ctaDesc}>Sign in and access your personalized dashboard in seconds.</p>
+        <h2 className={styles.ctaTitle}>Bereit loszulegen?</h2>
+        <p className={styles.ctaDesc}>Melden Sie sich an und greifen Sie in Sekundenschnelle auf Ihr persönliches Dashboard zu.</p>
         <Link href="/login" className={styles.ctaBtn}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-          Go to Login
+          Zum Login
         </Link>
       </section>
 
       {/* FOOTER */}
       <footer className={styles.footer}>
         <div className={styles.footerBrand}>
-          <div className={styles.navLogo} style={{width:32,height:32,fontSize:14}}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
-              <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
-            </svg>
+          <div className={styles.navLogo} style={{ width: 'auto', height: 'auto', background: 'transparent', display: 'flex', alignItems: 'center' }}>
+            <img src="/logo.png" alt="ProCRM Logo" style={{ maxHeight: '24px', objectFit: 'contain' }} />
           </div>
           <span className={styles.navBrandName}>ProCRM</span>
         </div>
-        <p className={styles.footerText}>© 2024 ProCRM. All rights reserved.</p>
+        <p className={styles.footerText}>© 2024 ProCRM. Alle Rechte vorbehalten.</p>
       </footer>
 
     </main>

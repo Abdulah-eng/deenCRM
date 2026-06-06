@@ -5,7 +5,7 @@ import styles from './Header.module.css';
 import { usePathname, useRouter } from 'next/navigation';
 import { supabase } from '@/utils/supabase';
 
-export default function Header({ title = "Dashboard", subtitle = "Overview" }) {
+export default function Header({ title = "Dashboard", subtitle = "Übersicht" }) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [userProfile, setUserProfile] = useState(null);
@@ -41,15 +41,15 @@ export default function Header({ title = "Dashboard", subtitle = "Overview" }) {
       const roleMap = {
         'admin': { badge: 'Administrator', color: '#7239ea', root: 'Admin' },
         'manager': { badge: 'Manager', color: '#009ef7', root: 'Manager' },
-        'finance': { badge: 'Accountant', color: '#c92a42', root: 'Finance' },
-        'sales': { badge: 'Sales Staff', color: '#10b981', root: 'Sales' },
-        'crew': { badge: 'Crew', color: '#f97316', root: 'Crew' },
+        'finance': { badge: 'Buchhaltung', color: '#c92a42', root: 'Finanzen' },
+        'sales': { badge: 'Vertrieb', color: '#10b981', root: 'Vertrieb' },
+        'crew': { badge: 'Montageteam', color: '#f97316', root: 'Montageteam' },
       };
-      const info = roleMap[userProfile.role] || { badge: 'User', color: '#a1a5b7', root: 'System' };
+      const info = roleMap[userProfile.role] || { badge: 'Benutzer', color: '#a1a5b7', root: 'System' };
       
       return {
-        avatar: userProfile.avatar_url || userProfile.full_name?.charAt(0) || 'U',
-        userName: userProfile.full_name || 'Unknown User',
+        avatar: userProfile.avatar_url || userProfile.full_name?.charAt(0) || 'B',
+        userName: userProfile.full_name || 'Unbekannter Benutzer',
         userRole: info.badge,
         root: info.root,
         roleBadge: info.badge,
@@ -58,8 +58,9 @@ export default function Header({ title = "Dashboard", subtitle = "Overview" }) {
     }
 
     // Fallback while loading
-    return { avatar: '...', userName: 'Loading...', userRole: '...', root: '...', roleBadge: '...', roleBadgeColor: '#ccc' };
+    return { avatar: '...', userName: 'Laden...', userRole: '...', root: '...', roleBadge: '...', roleBadgeColor: '#ccc' };
   }, [userProfile]);
+
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -90,7 +91,7 @@ export default function Header({ title = "Dashboard", subtitle = "Overview" }) {
       <div className={styles.headerActions}>
         <div className={styles.searchBar}>
           <Search size={16} className={styles.searchIcon} />
-          <input type="text" placeholder="Search..." className={styles.searchInput} />
+          <input type="text" placeholder="Suchen..." className={styles.searchInput} />
         </div>
 
         {/* Role Badge */}
@@ -113,26 +114,26 @@ export default function Header({ title = "Dashboard", subtitle = "Overview" }) {
             {showNotifications && (
               <div className={styles.notifDropdown}>
                 <div className={styles.notifHeader}>
-                  <h4>Notifications</h4>
+                  <h4>Benachrichtigungen</h4>
                 </div>
                 <div className={styles.notifList}>
                   <div className={styles.notifItem}>
                     <div className={styles.notifIcon} style={{ backgroundColor: 'rgba(0,158,247,0.1)', color: '#009ef7' }}>
                       <User size={14} />
                     </div>
-                    <span>New user registered: John M.</span>
+                    <span>Neuer Benutzer registriert: John M.</span>
                   </div>
                   <div className={styles.notifItem}>
                     <div className={styles.notifIcon} style={{ backgroundColor: 'rgba(241,65,108,0.1)', color: '#f1416c' }}>
                       <ShieldAlert size={14} />
                     </div>
-                    <span>Backup due in 2 hours</span>
+                    <span>Backup fällig in 2 Stunden</span>
                   </div>
                   <div className={styles.notifItem}>
                     <div className={styles.notifIcon} style={{ backgroundColor: 'rgba(80,205,137,0.1)', color: '#50cd89' }}>
                       <CheckCircle size={14} />
                     </div>
-                    <span>Module update available</span>
+                    <span>Modul-Update verfügbar</span>
                   </div>
                 </div>
               </div>
@@ -166,16 +167,16 @@ export default function Header({ title = "Dashboard", subtitle = "Overview" }) {
               <div className={styles.userDropdownList}>
                 <button className={styles.udItem} onClick={() => setShowUserMenu(false)}>
                   <User size={16} />
-                  My Profile
+                  Mein Profil
                 </button>
                 <button className={styles.udItem} onClick={() => setShowUserMenu(false)}>
                   <Settings size={16} />
-                  Settings
+                  Einstellungen
                 </button>
                 <div className={styles.udDivider} />
                 <button className={`${styles.udItem} ${styles.udLogout}`} onClick={handleLogout}>
                   <LogOut size={16} />
-                  Logout
+                  Abmelden
                 </button>
               </div>
             </div>

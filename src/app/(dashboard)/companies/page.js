@@ -6,9 +6,9 @@ import styles from './page.module.css';
 import { supabase } from '@/utils/supabase';
 
 const COMPANY_META = {
-  'Heating Works Southern Germany':   { color: '#ea580c', Icon: Flame,   prefix: 'INV-HW' },
-  'Screed Works Southern Germany':    { color: '#3b82f6', Icon: Droplet, prefix: 'INV-SW' },
-  'Electrical Works Southern Germany':{ color: '#10b981', Icon: Zap,     prefix: 'INV-EW' },
+  'Heiz Werke Süddeutschland':   { color: '#ea580c', Icon: Flame,   prefix: 'INV-HW' },
+  'Estrich Werke Süddeutschland':    { color: '#3b82f6', Icon: Droplet, prefix: 'INV-SW' },
+  'Elektro Werke Süddeutschland':{ color: '#10b981', Icon: Zap,     prefix: 'INV-EW' },
 };
 
 const EMPTY_FORM = { name: '', vat_number: '', invoice_prefix: '', address: '', phone: '', email: '' };
@@ -56,17 +56,17 @@ export default function CompaniesPage() {
 
   return (
     <>
-      <Header title="Companies" subtitle="Admin / Companies" />
+      <Header title="Unternehmen" subtitle="Admin / Unternehmen" />
       <div className={styles.container}>
         <div className={styles.pageHeader}>
           <div>
-            <h2 className={styles.title}>Company Management</h2>
-            <p className={styles.desc}>Manage 3 independent companies — logos, invoice numbering, VAT settings.</p>
+            <h2 className={styles.title}>Unternehmensverwaltung</h2>
+            <p className={styles.desc}>Verwalten Sie 3 unabhängige Unternehmen — Logos, Rechnungsnummern, USt-Einstellungen.</p>
           </div>
         </div>
 
         {loading ? (
-          <div style={{ padding: 60, textAlign: 'center', color: 'var(--body-text-muted)' }}>Loading companies...</div>
+          <div style={{ padding: 60, textAlign: 'center', color: 'var(--body-text-muted)' }}>Unternehmen werden geladen...</div>
         ) : (
           <div className={styles.companyGrid}>
             {companies.map(company => {
@@ -82,24 +82,24 @@ export default function CompaniesPage() {
                     <div className={styles.invoiceBlockRow}>
                       <div className={styles.invoiceBlock}>
                         <h4 style={{ color: meta.color }}>{company.invoice_prefix || meta.prefix}</h4>
-                        <span>Invoice Prefix</span>
+                        <span>Rechnungskürzel</span>
                       </div>
                       <div className={styles.invoiceBlock}>
                         <h4 style={{ color: meta.color }}>{company.next_invoice_number || '1'}</h4>
-                        <span>Next Invoice #</span>
+                        <span>Nächste Rechnung #</span>
                       </div>
                     </div>
-                    <div className={styles.statRow}><span className={styles.statLabel}>VAT Number</span><span className={styles.statValue}>{company.vat_number || '—'}</span></div>
-                    <div className={styles.statRow}><span className={styles.statLabel}>Email</span><span className={styles.statValue}>{company.email || '—'}</span></div>
-                    <div className={styles.statRow}><span className={styles.statLabel}>Phone</span><span className={styles.statValue}>{company.phone || '—'}</span></div>
-                    <div className={styles.statRow}><span className={styles.statLabel}>Address</span><span className={styles.statValue}>{company.address || '—'}</span></div>
+                    <div className={styles.statRow}><span className={styles.statLabel}>USt-IdNr.</span><span className={styles.statValue}>{company.vat_number || '—'}</span></div>
+                    <div className={styles.statRow}><span className={styles.statLabel}>E-Mail</span><span className={styles.statValue}>{company.email || '—'}</span></div>
+                    <div className={styles.statRow}><span className={styles.statLabel}>Telefon</span><span className={styles.statValue}>{company.phone || '—'}</span></div>
+                    <div className={styles.statRow}><span className={styles.statLabel}>Adresse</span><span className={styles.statValue}>{company.address || '—'}</span></div>
                   </div>
                   <div className={styles.cardFooter}>
                     <button className={`${styles.footerBtn} ${styles.editBtn}`} onClick={() => openEdit(company)}>
-                      <Edit3 size={14} /> Edit
+                      <Edit3 size={14} /> Bearbeiten
                     </button>
                     <button className={`${styles.footerBtn} ${styles.settingsBtn}`} onClick={() => openEdit(company)}>
-                      <Settings size={14} /> Settings
+                      <Settings size={14} /> Einstellungen
                     </button>
                   </div>
                 </div>
@@ -109,17 +109,19 @@ export default function CompaniesPage() {
         )}
 
         <div className={styles.logoSettingsCard}>
-          <div className={styles.logoSettingsHeader}><ImageIcon size={18} color="#7239ea" /> Shared Logo Settings</div>
+          <div className={styles.logoSettingsHeader}><ImageIcon size={18} color="#7239ea" /> Gemeinsame Logo-Einstellungen</div>
           <div className={styles.logoSettingsBody}>
-            <div className={styles.logoPreview}><Building2 size={24} color="#a1a5b7" /><span>ProCRM Logo</span></div>
+            <div className={styles.logoPreview} style={{ background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <img src="/logo.png" alt="ProCRM Logo" style={{ maxHeight: '36px', objectFit: 'contain' }} />
+            </div>
             <div className={styles.logoUpload}>
-              <h4>Upload New Shared Logo</h4>
+              <h4>Neues gemeinsames Logo hochladen</h4>
               <div className={styles.uploadRow}>
                 <input type="file" accept="image/png,image/jpeg" id="logoUpload" style={{ display: 'none' }} />
-                <button className={styles.browseBtn} onClick={() => document.getElementById('logoUpload').click()}>Browse...</button>
-                <span className={styles.fileName}>No file selected.</span>
+                <button className={styles.browseBtn} onClick={() => document.getElementById('logoUpload').click()}>Durchsuchen...</button>
+                <span className={styles.fileName}>Keine Datei ausgewählt.</span>
               </div>
-              <span className={styles.uploadHint}>PNG, max 2MB, 240x80px recommended.</span>
+              <span className={styles.uploadHint}>PNG, max. 2MB, 240x80px empfohlen.</span>
             </div>
           </div>
         </div>
@@ -131,25 +133,25 @@ export default function CompaniesPage() {
           <div style={modalBox}>
             <div style={modalHeader}>
               <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8 }}>
-                <Edit3 size={16} color="#7239ea" /> Edit Company
+                <Edit3 size={16} color="#7239ea" /> Unternehmen bearbeiten
               </h3>
               <button style={closeBtn} onClick={() => setEditTarget(null)}><X size={16} /></button>
             </div>
             <div style={modalBody}>
-              <div style={group}><label style={label}>Company Name</label><input style={inp} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} /></div>
+              <div style={group}><label style={label}>Unternehmensname</label><input style={inp} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} /></div>
               <div style={row2}>
-                <div style={group}><label style={label}>VAT Number</label><input style={inp} value={form.vat_number} onChange={e => setForm({ ...form, vat_number: e.target.value })} placeholder="DE 123456789" /></div>
-                <div style={group}><label style={label}>Invoice Prefix</label><input style={inp} value={form.invoice_prefix} onChange={e => setForm({ ...form, invoice_prefix: e.target.value })} placeholder="INV-HW" /></div>
+                <div style={group}><label style={label}>USt-IdNr.</label><input style={inp} value={form.vat_number} onChange={e => setForm({ ...form, vat_number: e.target.value })} placeholder="DE 123456789" /></div>
+                <div style={group}><label style={label}>Rechnungskürzel</label><input style={inp} value={form.invoice_prefix} onChange={e => setForm({ ...form, invoice_prefix: e.target.value })} placeholder="INV-HW" /></div>
               </div>
               <div style={row2}>
-                <div style={group}><label style={label}>Email</label><input style={inp} type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} /></div>
-                <div style={group}><label style={label}>Phone</label><input style={inp} value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} /></div>
+                <div style={group}><label style={label}>E-Mail</label><input style={inp} type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} /></div>
+                <div style={group}><label style={label}>Telefon</label><input style={inp} value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} /></div>
               </div>
-              <div style={group}><label style={label}>Address</label><input style={inp} value={form.address} onChange={e => setForm({ ...form, address: e.target.value })} placeholder="Street, City, ZIP..." /></div>
+              <div style={group}><label style={label}>Adresse</label><input style={inp} value={form.address} onChange={e => setForm({ ...form, address: e.target.value })} placeholder="Straße, Ort, PLZ..." /></div>
             </div>
             <div style={modalFooter}>
-              <button style={cancelBtnS} onClick={() => setEditTarget(null)}>Cancel</button>
-              <button style={saveBtnS} onClick={handleSave} disabled={saving}><Save size={14} />{saving ? 'Saving...' : 'Save Changes'}</button>
+              <button style={cancelBtnS} onClick={() => setEditTarget(null)}>Abbrechen</button>
+              <button style={saveBtnS} onClick={handleSave} disabled={saving}><Save size={14} />{saving ? 'Speichern...' : 'Änderungen speichern'}</button>
             </div>
           </div>
         </div>

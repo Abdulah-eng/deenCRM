@@ -7,22 +7,22 @@ import { supabase } from '@/utils/supabase';
 
 // ─── Role helpers ────────────────────────────────────────────────────────────
 const ROLES = ['admin', 'manager', 'sales', 'crew', 'finance'];
-const COMPANIES = ['Screed Works', 'Heating Works', 'Electrical Works', 'All Companies'];
 
 const ROLE_META = {
   admin:   { color: '#7239ea', bg: 'rgba(114,57,234,0.12)',  label: 'Admin' },
   manager: { color: '#009ef7', bg: 'rgba(0,158,247,0.12)',   label: 'Manager' },
-  sales:   { color: '#50cd89', bg: 'rgba(80,205,137,0.12)',  label: 'Sales' },
-  crew:    { color: '#ffc700', bg: 'rgba(255,199,0,0.12)',   label: 'Crew' },
-  finance: { color: '#f1416c', bg: 'rgba(241,65,108,0.12)', label: 'Finance' },
+  sales:   { color: '#50cd89', bg: 'rgba(80,205,137,0.12)',  label: 'Vertrieb' },
+  crew:    { color: '#ffc700', bg: 'rgba(255,199,0,0.12)',   label: 'Team' },
+  finance: { color: '#f1416c', bg: 'rgba(241,65,108,0.12)', label: 'Finanzen' },
 };
 
 function getRoleMeta(role) {
-  return ROLE_META[role?.toLowerCase()] ?? { color: '#a1a5b7', bg: 'rgba(161,165,183,0.12)', label: role ?? '—' };
+  const r = role?.toLowerCase();
+  return ROLE_META[r] ?? { color: '#a1a5b7', bg: 'rgba(161,165,183,0.12)', label: role ?? '—' };
 }
 
 // ─── Blank form state ─────────────────────────────────────────────────────────
-const BLANK_FORM = { full_name: '', email: '', role: 'sales', company: 'All Companies', status: 'ACTIVE' };
+const BLANK_FORM = { full_name: '', email: '', role: 'sales', company_id: '', status: 'ACTIVE' };
 
 // ─── Overlay / Modal styles (inline, no CSS module needed) ────────────────────
 const overlayStyle = {
@@ -69,19 +69,19 @@ const modalFooterStyle = {
 function ConfirmDialog({ message, onConfirm, onCancel }) {
   return (
     <div style={overlayStyle}>
-      <div style={{ ...modalStyle, width: '380px' }}>
+      <div style={{ ...modalStyle, width: '400px' }}>
         <div style={modalHeaderStyle}>
-          <span style={modalTitleStyle}>Confirm Delete</span>
+          <span style={modalTitleStyle}>Löschen bestätigen</span>
           <button style={modalCloseStyle} onClick={onCancel}><X size={18} /></button>
         </div>
         <div style={{ padding: '24px', fontSize: '14px', color: 'var(--header-text, #181c32)' }}>
           {message}
         </div>
         <div style={modalFooterStyle}>
-          <button className="btn btn-secondary" onClick={onCancel}>Cancel</button>
+          <button className="btn btn-secondary" onClick={onCancel}>Abbrechen</button>
           <button className="btn btn-danger" onClick={onConfirm}
             style={{ background: '#f1416c', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '6px', fontWeight: 600, cursor: 'pointer' }}>
-            Delete
+            Löschen
           </button>
         </div>
       </div>
@@ -90,7 +90,7 @@ function ConfirmDialog({ message, onConfirm, onCancel }) {
 }
 
 // ─── User Modal ───────────────────────────────────────────────────────────────
-function UserModal({ title, form, onChange, onSubmit, onClose, saving }) {
+function UserModal({ title, form, onChange, onSubmit, onClose, saving, dbCompanies }) {
   return (
     <div style={overlayStyle}>
       <div style={modalStyle}>
@@ -103,11 +103,11 @@ function UserModal({ title, form, onChange, onSubmit, onClose, saving }) {
             <div style={formGridStyle}>
               {/* Full Name */}
               <div style={{ ...formGroupStyle, gridColumn: '1 / -1' }}>
-                <label style={formLabelStyle}>Full Name</label>
+                <label style={formLabelStyle}>Vollständiger Name</label>
                 <input
                   style={formInputStyle}
                   type="text"
-                  placeholder="Enter full name"
+                  placeholder="Vollständigen Namen eingeben"
                   value={form.full_name}
                   onChange={e => onChange('full_name', e.target.value)}
                   required
@@ -115,11 +115,11 @@ function UserModal({ title, form, onChange, onSubmit, onClose, saving }) {
               </div>
               {/* Email */}
               <div style={{ ...formGroupStyle, gridColumn: '1 / -1' }}>
-                <label style={formLabelStyle}>Email</label>
+                <label style={formLabelStyle}>E-Mail-Adresse</label>
                 <input
                   style={formInputStyle}
                   type="email"
-                  placeholder="Enter email address"
+                  placeholder="E-Mail-Adresse eingeben"
                   value={form.email}
                   onChange={e => onChange('email', e.target.value)}
                   required
@@ -127,15 +127,18 @@ function UserModal({ title, form, onChange, onSubmit, onClose, saving }) {
               </div>
               {/* Role */}
               <div style={formGroupStyle}>
-                <label style={formLabelStyle}>Role</label>
+                <label style={formLabelStyle}>Rolle</label>
                 <select
                   style={formInputStyle}
                   value={form.role}
                   onChange={e => onChange('role', e.target.value)}
                 >
-                  {ROLES.map(r => (
-                    <option key={r} value={r}>{r.charAt(0).toUpperCase() + r.slice(1)}</option>
-                  ))}
+                  {ROLES.map(r => {
+                    const labelMap = { admin: 'Admin', manager: 'Manager', sales: 'Vertrieb', crew: 'Team', finance: 'Finanzen' };
+                    return (
+                      <option key={r} value={r}>{labelMap[r] || r}</option>
+                    );
+                  })}
                 </select>
               </div>
               {/* Status */}
@@ -146,20 +149,21 @@ function UserModal({ title, form, onChange, onSubmit, onClose, saving }) {
                   value={form.status}
                   onChange={e => onChange('status', e.target.value)}
                 >
-                  <option value="ACTIVE">Active</option>
-                  <option value="INACTIVE">Inactive</option>
+                  <option value="ACTIVE">Aktiv</option>
+                  <option value="INACTIVE">Inaktiv</option>
                 </select>
               </div>
               {/* Company */}
               <div style={{ ...formGroupStyle, gridColumn: '1 / -1' }}>
-                <label style={formLabelStyle}>Company</label>
+                <label style={formLabelStyle}>Unternehmen</label>
                 <select
                   style={formInputStyle}
-                  value={form.company}
-                  onChange={e => onChange('company', e.target.value)}
+                  value={form.company_id}
+                  onChange={e => onChange('company_id', e.target.value)}
                 >
-                  {COMPANIES.map(c => (
-                    <option key={c} value={c}>{c}</option>
+                  <option value="">Alle Unternehmen</option>
+                  {dbCompanies.map(c => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
                   ))}
                 </select>
               </div>
@@ -167,14 +171,14 @@ function UserModal({ title, form, onChange, onSubmit, onClose, saving }) {
           </div>
           <div style={modalFooterStyle}>
             <button type="button" className="btn btn-secondary" onClick={onClose} disabled={saving}>
-              Cancel
+              Abbrechen
             </button>
             <button
               type="submit"
               className="btn btn-primary"
               disabled={saving}
             >
-              {saving ? 'Saving…' : 'Save User'}
+              {saving ? 'Speichern…' : 'Benutzer speichern'}
             </button>
           </div>
         </form>
@@ -186,6 +190,7 @@ function UserModal({ title, form, onChange, onSubmit, onClose, saving }) {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function UsersPage() {
   const [users, setUsers] = useState([]);
+  const [dbCompanies, setDbCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
@@ -202,15 +207,24 @@ export default function UsersPage() {
   // ── Fetch ──────────────────────────────────────────────────────────────────
   const fetchUsers = useCallback(async () => {
     setLoading(true);
+    // Fetch users joined with companies
     const { data, error } = await supabase
       .from('profiles')
-      .select('*')
+      .select('*, companies(id, name)')
       .order('created_at', { ascending: false });
     if (!error) setUsers(data ?? []);
     setLoading(false);
   }, []);
 
-  useEffect(() => { fetchUsers(); }, [fetchUsers]);
+  const fetchCompanies = useCallback(async () => {
+    const { data } = await supabase.from('companies').select('id, name');
+    if (data) setDbCompanies(data);
+  }, []);
+
+  useEffect(() => { 
+    fetchUsers(); 
+    fetchCompanies();
+  }, [fetchUsers, fetchCompanies]);
 
   // ── Filtered list ──────────────────────────────────────────────────────────
   const filtered = users.filter(u => {
@@ -236,9 +250,9 @@ export default function UsersPage() {
     setEditingUser(user);
     setForm({
       full_name: user.full_name ?? '',
-      email: user.email ?? '',
+      email: user.email ?? `${user.full_name?.toLowerCase().replace(/\s+/g, '.')}@procrm.de`,
       role: (user.role ?? 'sales').toLowerCase(),
-      company: user.company ?? 'All Companies',
+      company_id: user.company_id ?? '',
       status: user.status ?? 'ACTIVE',
     });
     setModalOpen(true);
@@ -259,12 +273,14 @@ export default function UsersPage() {
     e.preventDefault();
     setSaving(true);
 
+    const selectedComp = dbCompanies.find(c => c.id === form.company_id);
     const payload = {
       full_name: form.full_name.trim(),
-      email: form.email.trim(),
       role: form.role,
-      company: form.company,
+      company_id: form.company_id || null,
+      company: selectedComp ? selectedComp.name : 'Alle Unternehmen',
       status: form.status,
+      email: form.email.trim(),
     };
 
     if (editingUser) {
@@ -273,16 +289,20 @@ export default function UsersPage() {
         .update(payload)
         .eq('id', editingUser.id);
       if (!error) {
-        setUsers(prev => prev.map(u => u.id === editingUser.id ? { ...u, ...payload } : u));
+        setUsers(prev => prev.map(u => u.id === editingUser.id ? { ...u, ...payload, companies: selectedComp ? { id: selectedComp.id, name: selectedComp.name } : null } : u));
+      } else {
+        alert("Fehler beim Aktualisieren: " + error.message);
       }
     } else {
       const { data, error } = await supabase
         .from('profiles')
         .insert([payload])
-        .select()
+        .select('*, companies(id, name)')
         .single();
       if (!error && data) {
         setUsers(prev => [data, ...prev]);
+      } else {
+        alert("Fehler beim Erstellen: " + error.message);
       }
     }
 
@@ -302,6 +322,8 @@ export default function UsersPage() {
       .eq('id', deleteTarget.id);
     if (!error) {
       setUsers(prev => prev.filter(u => u.id !== deleteTarget.id));
+    } else {
+      alert("Fehler beim Löschen: " + error.message);
     }
     setDeleteTarget(null);
   }
@@ -309,22 +331,23 @@ export default function UsersPage() {
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <>
-      <Header title="Users & Roles" subtitle="Users & Roles" />
+      <Header title="Benutzer & Rollen" subtitle="Benutzer & Rollen" />
 
       {/* Modals */}
       {modalOpen && (
         <UserModal
-          title={editingUser ? 'Edit User' : 'Add New User'}
+          title={editingUser ? 'Benutzer bearbeiten' : 'Neuen Benutzer hinzufügen'}
           form={form}
           onChange={handleFormChange}
           onSubmit={handleSubmit}
           onClose={closeModal}
           saving={saving}
+          dbCompanies={dbCompanies}
         />
       )}
       {deleteTarget && (
         <ConfirmDialog
-          message={`Are you sure you want to delete "${deleteTarget.full_name}"? This action cannot be undone.`}
+          message={`Sind Sie sicher, dass Sie den Benutzer "${deleteTarget.full_name}" löschen möchten? Dies kann nicht rückgängig gemacht werden.`}
           onConfirm={confirmDelete}
           onCancel={cancelDelete}
         />
@@ -335,7 +358,7 @@ export default function UsersPage() {
         <div className={styles.header}>
           <div className={styles.headerLeft}>
             <p className={styles.description}>
-              Manage system users, assign roles, and control access permissions.
+              Systembenutzer verwalten, Rollen zuweisen und Zugriffsberechtigungen steuern.
             </p>
           </div>
           <div className={styles.headerRight}>
@@ -345,13 +368,16 @@ export default function UsersPage() {
               onChange={e => setRoleFilter(e.target.value)}
               style={{ cursor: 'pointer' }}
             >
-              <option value="all">All Roles</option>
-              {ROLES.map(r => (
-                <option key={r} value={r}>{r.charAt(0).toUpperCase() + r.slice(1)}</option>
-              ))}
+              <option value="all">Alle Rollen</option>
+              {ROLES.map(r => {
+                const labelMap = { admin: 'Admin', manager: 'Manager', sales: 'Vertrieb', crew: 'Team', finance: 'Finanzen' };
+                return (
+                  <option key={r} value={r}>{labelMap[r] || r}</option>
+                );
+              })}
             </select>
             <button className="btn btn-primary" onClick={openAdd}>
-              <Plus size={16} style={{ marginRight: '8px' }} /> Add New User
+              <Plus size={16} style={{ marginRight: '8px' }} /> Neuen Benutzer hinzufügen
             </button>
           </div>
         </div>
@@ -365,15 +391,15 @@ export default function UsersPage() {
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
                 </svg>
-              ), label: 'Sales' },
-            { role: 'crew',    icon: <Users size={20} />,   label: 'Crew' },
+              ), label: 'Vertrieb' },
+            { role: 'crew',    icon: <Users size={20} />,   label: 'Team' },
             { role: 'finance', icon: (
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
                   <line x1="3" y1="9" x2="21" y2="9"/>
                   <line x1="9" y1="21" x2="9" y2="9"/>
                 </svg>
-              ), label: 'Finance' },
+              ), label: 'Finanzen' },
           ].map(({ role, icon, label }) => {
             const meta = getRoleMeta(role);
             return (
@@ -393,14 +419,14 @@ export default function UsersPage() {
           <div className={styles.tableHeader}>
             <div className={styles.tableTitle}>
               <Users size={16} />
-              All System Users ({filtered.length})
+              Alle Systembenutzer ({filtered.length})
             </div>
             <div className={styles.tableControls}>
               <div className={styles.searchBox}>
                 <Search size={14} className={styles.searchIcon} />
                 <input
                   type="text"
-                  placeholder="Search users…"
+                  placeholder="Benutzer suchen…"
                   value={search}
                   onChange={e => setSearch(e.target.value)}
                 />
@@ -411,31 +437,34 @@ export default function UsersPage() {
           <div className="table-container">
             {loading ? (
               <div style={{ padding: '40px', textAlign: 'center', color: 'var(--body-text-muted)' }}>
-                Loading users…
+                Benutzer werden geladen…
               </div>
             ) : (
               <table>
                 <thead>
                   <tr>
                     <th>#</th>
-                    <th>USER</th>
-                    <th>EMAIL</th>
-                    <th>ROLE</th>
-                    <th>COMPANY</th>
+                    <th>BENUTZER</th>
+                    <th>E-MAIL</th>
+                    <th>ROLLE</th>
+                    <th>UNTERNEHMEN</th>
                     <th>STATUS</th>
-                    <th>ACTIONS</th>
+                    <th>AKTIONEN</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filtered.length === 0 ? (
                     <tr>
                       <td colSpan={7} style={{ textAlign: 'center', padding: '40px', color: 'var(--body-text-muted)' }}>
-                        No users found.
+                        Keine Benutzer gefunden.
                       </td>
                     </tr>
                   ) : filtered.map((user, idx) => {
                     const meta = getRoleMeta(user.role);
                     const initial = (user.full_name ?? '?').charAt(0).toUpperCase();
+                    // Fallback email generation if null
+                    const displayEmail = user.email || `${user.full_name?.toLowerCase().replace(/\s+/g, '.')}@procrm.de`;
+                    const companyDisplay = user.companies?.name || 'Alle Unternehmen';
                     return (
                       <tr key={user.id}>
                         <td>{idx + 1}</td>
@@ -450,7 +479,7 @@ export default function UsersPage() {
                             </div>
                           </div>
                         </td>
-                        <td><span className={styles.emailText}>{user.email}</span></td>
+                        <td><span className={styles.emailText}>{displayEmail}</span></td>
                         <td>
                           <span
                             className={styles.roleBadge}
@@ -459,24 +488,24 @@ export default function UsersPage() {
                             {meta.label}
                           </span>
                         </td>
-                        <td><span className={styles.companyText}>{user.company ?? '—'}</span></td>
+                        <td><span className={styles.companyText}>{companyDisplay}</span></td>
                         <td>
                           <span className={`badge ${user.status === 'ACTIVE' ? 'badge-active' : 'badge-inactive'}`}>
-                            {user.status}
+                            {user.status === 'ACTIVE' ? 'AKTIV' : 'INAKTIV'}
                           </span>
                         </td>
                         <td>
                           <div className={styles.actionButtons}>
                             <button
                               className={styles.actionBtn}
-                              title="Edit user"
+                              title="Benutzer bearbeiten"
                               onClick={() => openEdit(user)}
                             >
                               <Edit3 size={14} color="#009ef7" />
                             </button>
                             <button
                               className={styles.actionBtn}
-                              title="Delete user"
+                              title="Benutzer löschen"
                               onClick={() => promptDelete(user)}
                             >
                               <Trash2 size={14} color="#f1416c" />

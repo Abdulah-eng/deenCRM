@@ -5,24 +5,24 @@ import { Building2, BarChart2 } from 'lucide-react';
 import styles from './page.module.css';
 
 const companyData = [
-  { name: 'Heating Works', iconColor: '#f97316', orders: 24, rev: '€ 198,400', plan: '€ 41,600', actual: '€ 38,200', margin: '19.3%', util: '78%' },
-  { name: 'Screed Works', iconColor: '#3b82f6', orders: 31, rev: '€ 162,800', plan: '€ 33,780', actual: '€ 28,420', margin: '17.5%', util: '65%' },
-  { name: 'Electrical Works', iconColor: '#ef4444', orders: 8, rev: '€ 22,000', plan: '€ 4,500', actual: '€ 4,100', margin: '17.6%', util: '91%' },
+  { name: 'Heiz Werke Süddeutschland', iconColor: '#f97316', orders: 24, rev: '€ 198.400', plan: '€ 41.600', actual: '€ 38.200', margin: '19.3%', util: '78%' },
+  { name: 'Estrich Werke Süddeutschland', iconColor: '#3b82f6', orders: 31, rev: '€ 162.800', plan: '€ 33.780', actual: '€ 28.420', margin: '17.5%', util: '65%' },
+  { name: 'Elektro Werke Süddeutschland', iconColor: '#ef4444', orders: 8, rev: '€ 22.000', plan: '€ 4.500', actual: '€ 4.100', margin: '17.6%', util: '91%' },
 ];
 
 export default function AdminReports() {
   return (
     <>
-      <Header title="Reports" subtitle="Reports" />
+      <Header title="Berichte" subtitle="Berichte" />
       <div className={styles.container}>
         
         <div className={styles.chartsGrid}>
           <div className="card" style={{ padding: '24px', flex: 2 }}>
             <div className={styles.barChartHeader}>
               <div className={styles.legend}>
-                <div className={styles.legendItem}><span style={{ background: '#a855f7' }}></span> Heating</div>
-                <div className={styles.legendItem}><span style={{ background: '#c084fc' }}></span> Screed</div>
-                <div className={styles.legendItem}><span style={{ background: '#d8b4fe' }}></span> Electrical</div>
+                <div className={styles.legendItem}><span style={{ background: '#a855f7' }}></span> Heizung</div>
+                <div className={styles.legendItem}><span style={{ background: '#c084fc' }}></span> Estrich</div>
+                <div className={styles.legendItem}><span style={{ background: '#d8b4fe' }}></span> Elektro</div>
               </div>
             </div>
             
@@ -32,12 +32,12 @@ export default function AdminReports() {
               </div>
               <div className={styles.barGroups}>
                 {[
-                  { m: 'Dec', v1: '60%', v2: '45%', v3: '30%' },
+                  { m: 'Dez', v1: '60%', v2: '45%', v3: '30%' },
                   { m: 'Jan', v1: '70%', v2: '55%', v3: '40%' },
                   { m: 'Feb', v1: '75%', v2: '60%', v3: '45%' },
-                  { m: 'Mar', v1: '65%', v2: '50%', v3: '35%' },
+                  { m: 'Mär', v1: '65%', v2: '50%', v3: '35%' },
                   { m: 'Apr', v1: '80%', v2: '60%', v3: '45%' },
-                  { m: 'May', v1: '78%', v2: '58%', v3: '42%' }
+                  { m: 'Mai', v1: '78%', v2: '58%', v3: '42%' }
                 ].map((d, i) => (
                   <div key={i} className={styles.barGroup}>
                     <div className={styles.barStack}>
@@ -63,19 +63,19 @@ export default function AdminReports() {
             </div>
             <div className={styles.donutLegend}>
               <div className={styles.dlItem}>
-                <div><span style={{ backgroundColor: '#10b981' }}></span> Completed</div>
+                <div><span style={{ backgroundColor: '#10b981' }}></span> Abgeschlossen</div>
                 <strong>28</strong>
               </div>
               <div className={styles.dlItem}>
-                <div><span style={{ backgroundColor: '#3b82f6' }}></span> In Progress</div>
+                <div><span style={{ backgroundColor: '#3b82f6' }}></span> In Arbeit</div>
                 <strong>21</strong>
               </div>
               <div className={styles.dlItem}>
-                <div><span style={{ backgroundColor: '#f59e0b' }}></span> Scheduled</div>
+                <div><span style={{ backgroundColor: '#f59e0b' }}></span> Geplant</div>
                 <strong>10</strong>
               </div>
               <div className={styles.dlItem}>
-                <div><span style={{ backgroundColor: '#ef4444' }}></span> Complaint</div>
+                <div><span style={{ backgroundColor: '#ef4444' }}></span> Reklamation</div>
                 <strong>4</strong>
               </div>
             </div>
@@ -84,19 +84,19 @@ export default function AdminReports() {
 
         <div className="card">
           <div className={styles.tableHeader}>
-            <div className={styles.tableTitle}><Building2 size={16} color="var(--primary)" /> Revenue Breakdown by Company</div>
+            <div className={styles.tableTitle}><Building2 size={16} color="var(--primary)" /> Umsatzaufschlüsselung nach Unternehmen</div>
           </div>
           <div className="table-container">
             <table className={styles.table}>
               <thead>
                 <tr>
-                  <th>COMPANY</th>
-                  <th>ORDERS</th>
-                  <th>REVENUE</th>
-                  <th>PLAN DB</th>
-                  <th>ACTUAL DB</th>
-                  <th>MARGIN %</th>
-                  <th>UTILIZATION</th>
+                  <th>UNTERNEHMEN</th>
+                  <th>AUFTRÄGE</th>
+                  <th>UMSATZ</th>
+                  <th>PLAN-DECKUNGSBEITRAG</th>
+                  <th>IST-DECKUNGSBEITRAG</th>
+                  <th>MARGE %</th>
+                  <th>AUSLASTUNG</th>
                 </tr>
               </thead>
               <tbody>

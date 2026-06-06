@@ -6,11 +6,11 @@ import styles from './page.module.css';
 import { supabase } from '@/utils/supabase';
 
 const lineChartData = {
-  weeks: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+  weeks: ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'],
   series: [
-    { label: 'Heating Works', color: '#7239ea', values: [8200, 9100, 9800, 13100, 11200, 10400, 9800] },
-    { label: 'Screed Works', color: '#a855f7', values: [6200, 6800, 7100, 8900, 7800, 8200, 7400] },
-    { label: 'Electrical Works', color: '#c4a4fb', values: [4200, 4900, 5800, 5500, 6100, 5200, 4800] },
+    { label: 'Heiz Werke Süddeutschland', color: '#7239ea', values: [8200, 9100, 9800, 13100, 11200, 10400, 9800] },
+    { label: 'Estrich Werke Süddeutschland', color: '#a855f7', values: [6200, 6800, 7100, 8900, 7800, 8200, 7400] },
+    { label: 'Elektro Werke Süddeutschland', color: '#c4a4fb', values: [4200, 4900, 5800, 5500, 6100, 5200, 4800] },
   ],
 };
 
@@ -83,8 +83,8 @@ export default function AdminDashboard() {
       <Header title="Dashboard" subtitle="Dashboard" />
       <div className={styles.container}>
         <div className={styles.welcome}>
-          <h2>Welcome back, Admin 👋</h2>
-          <p>Here's what's happening across all companies today.</p>
+          <h2>Willkommen zurück, Admin 👋</h2>
+          <p>Das passiert heute in allen Ihren Unternehmen.</p>
         </div>
 
         {/* KPI Cards */}
@@ -93,32 +93,32 @@ export default function AdminDashboard() {
             <div className={styles.kpiIcon} style={{ backgroundColor: 'rgba(114,57,234,0.1)', color: '#7239ea' }}><Users size={22} /></div>
             <div className={styles.kpiBody}>
               <h2 className={styles.kpiValue}>{loading ? '—' : kpi.customers}</h2>
-              <p className={styles.kpiLabel}>Total Customers</p>
-              <span className={styles.kpiTrend} style={{ color: '#50cd89' }}>Live from DB</span>
+              <p className={styles.kpiLabel}>Kunden insgesamt</p>
+              <span className={styles.kpiTrend} style={{ color: '#50cd89' }}>Live aus DB</span>
             </div>
           </div>
           <div className={`card ${styles.kpiCard}`}>
             <div className={styles.kpiIcon} style={{ backgroundColor: 'rgba(114,57,234,0.1)', color: '#7239ea' }}><TrendingUp size={22} /></div>
             <div className={styles.kpiBody}>
               <h2 className={styles.kpiValue}>{loading ? '—' : fmt(kpi.revenue)}</h2>
-              <p className={styles.kpiLabel}>Total Revenue</p>
-              <span className={styles.kpiTrend} style={{ color: '#50cd89' }}>Live from DB</span>
+              <p className={styles.kpiLabel}>Gesamtumsatz</p>
+              <span className={styles.kpiTrend} style={{ color: '#50cd89' }}>Live aus DB</span>
             </div>
           </div>
           <div className={`card ${styles.kpiCard}`}>
             <div className={styles.kpiIcon} style={{ backgroundColor: 'rgba(114,57,234,0.1)', color: '#7239ea' }}><ClipboardList size={22} /></div>
             <div className={styles.kpiBody}>
               <h2 className={styles.kpiValue}>{loading ? '—' : kpi.activeOrders}</h2>
-              <p className={styles.kpiLabel}>Active Orders</p>
-              <span className={styles.kpiTrend} style={{ color: '#50cd89' }}>Live from DB</span>
+              <p className={styles.kpiLabel}>Aktive Aufträge</p>
+              <span className={styles.kpiTrend} style={{ color: '#50cd89' }}>Live aus DB</span>
             </div>
           </div>
           <div className={`card ${styles.kpiCard}`}>
             <div className={styles.kpiIcon} style={{ backgroundColor: 'rgba(114,57,234,0.1)', color: '#7239ea' }}><UserCog size={22} /></div>
             <div className={styles.kpiBody}>
               <h2 className={styles.kpiValue}>{loading ? '—' : kpi.users}</h2>
-              <p className={styles.kpiLabel}>System Users</p>
-              <span className={styles.kpiTrend} style={{ color: '#50cd89' }}>Live from DB</span>
+              <p className={styles.kpiLabel}>Systembenutzer</p>
+              <span className={styles.kpiTrend} style={{ color: '#50cd89' }}>Live aus DB</span>
             </div>
           </div>
         </div>
@@ -127,31 +127,38 @@ export default function AdminDashboard() {
         <div className={styles.chartsRow}>
           <div className={`card ${styles.lineChartCard}`}>
             <div className={styles.chartHeader}>
-              <h3>Revenue Overview — All Companies</h3>
+              <h3>Umsatzübersicht — Alle Unternehmen</h3>
               <div className={styles.chartControls}>
                 <button
                   className={`${styles.controlBtn} ${chartView === 'monthly' ? styles.controlBtnActive : ''}`}
                   onClick={() => setChartView('monthly')}
-                >Monthly</button>
+                >Monatlich</button>
                 <button
                   className={`${styles.controlBtn} ${chartView === 'weekly' ? styles.controlBtnActive : ''}`}
                   onClick={() => setChartView('weekly')}
-                >Weekly</button>
+                >Wöchentlich</button>
               </div>
             </div>
             <div className={styles.chartLegend}>
-              {lineChartData.series.map(s => (
-                <div key={s.label} className={styles.legendItem}>
-                  <span className={styles.legendDot} style={{ backgroundColor: s.color }}></span>
-                  <span>{s.label}</span>
-                </div>
-              ))}
+              {lineChartData.series.map(s => {
+                const labelMap = {
+                  'Heiz Werke Süddeutschland': 'Heizung',
+                  'Estrich Werke Süddeutschland': 'Estrich',
+                  'Elektro Werke Süddeutschland': 'Elektro'
+                };
+                return (
+                  <div key={s.label} className={styles.legendItem}>
+                    <span className={styles.legendDot} style={{ backgroundColor: s.color }}></span>
+                    <span>{labelMap[s.label] || s.label}</span>
+                  </div>
+                );
+              })}
             </div>
             <div className={styles.svgWrapper}><MultiLineChart /></div>
           </div>
 
           <div className={`card ${styles.donutCard}`}>
-            <div className={styles.chartHeader}><h3>Revenue by Company</h3></div>
+            <div className={styles.chartHeader}><h3>Umsatz nach Unternehmen</h3></div>
             <div className={styles.donutWrapper}>
               <svg viewBox="0 0 160 160" className={styles.donutSvg}>
                 <circle cx="80" cy="80" r="60" fill="none" stroke="#7239ea" strokeWidth="26" strokeDasharray="170 377" strokeDashoffset="-40" />
@@ -159,9 +166,9 @@ export default function AdminDashboard() {
                 <circle cx="80" cy="80" r="60" fill="none" stroke="#c4a4fb" strokeWidth="26" strokeDasharray="75 377" strokeDashoffset="-342" />
               </svg>
               <div className={styles.donutLabels}>
-                <div className={styles.donutLabelItem}><span className={styles.legendDot} style={{ backgroundColor: '#7239ea' }}></span><span>Heating</span><strong>45%</strong></div>
-                <div className={styles.donutLabelItem}><span className={styles.legendDot} style={{ backgroundColor: '#a855f7' }}></span><span>Screed</span><strong>35%</strong></div>
-                <div className={styles.donutLabelItem}><span className={styles.legendDot} style={{ backgroundColor: '#c4a4fb' }}></span><span>Electrical</span><strong>20%</strong></div>
+                <div className={styles.donutLabelItem}><span className={styles.legendDot} style={{ backgroundColor: '#7239ea' }}></span><span>Heizung</span><strong>45%</strong></div>
+                <div className={styles.donutLabelItem}><span className={styles.legendDot} style={{ backgroundColor: '#a855f7' }}></span><span>Estrich</span><strong>35%</strong></div>
+                <div className={styles.donutLabelItem}><span className={styles.legendDot} style={{ backgroundColor: '#c4a4fb' }}></span><span>Elektro</span><strong>20%</strong></div>
               </div>
             </div>
           </div>

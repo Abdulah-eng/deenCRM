@@ -204,3 +204,10 @@
   background-color: var(--primary);
 }
 
+.logoImage {
+  max-height: 28px;
+  max-width: 130px;
+  object-fit: contain;
+}
+
+
