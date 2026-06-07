@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/utils/supabase';
 import styles from './Sidebar.module.css';
+import { useRouter } from 'next/navigation';
 
 
 const navItems = [
@@ -57,7 +58,9 @@ const navItems = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [companyName, setCompanyName] = useState('Heiz Werke Süddeutschland');
+  const [logoSrc, setLogoSrc] = useState('/logo.png');
 
   useEffect(() => {
     async function loadCompany() {
@@ -80,6 +83,19 @@ export default function Sidebar() {
       }
     }
     loadCompany();
+
+    function loadLogo() {
+      const savedLogo = localStorage.getItem('crm_custom_logo');
+      if (savedLogo) {
+        setLogoSrc(savedLogo);
+      } else {
+        setLogoSrc('/logo.png');
+      }
+    }
+    loadLogo();
+    
+    window.addEventListener('logoChanged', loadLogo);
+    return () => window.removeEventListener('logoChanged', loadLogo);
   }, []);
 
   const currentRole = useMemo(() => {
@@ -109,7 +125,7 @@ export default function Sidebar() {
     <aside className={`${styles.sidebar} ${themeClass}`}>
       <div className={styles.logoContainer}>
         <div className={styles.logoIcon} style={{ background: 'transparent', width: 'auto', height: 'auto', display: 'flex', alignItems: 'center' }}>
-          <img src="/logo.png" alt="Logo" className={styles.logoImage} />
+          <img src={logoSrc} alt="Logo" className={styles.logoImage} />
         </div>
         <div className={styles.logoText}>
           <h2>ProCRM</h2>
@@ -149,10 +165,16 @@ export default function Sidebar() {
       </div>
 
       <div className={styles.bottomNav}>
-        <Link href="/login" className={styles.logoutBtn} style={{ textDecoration: 'none' }}>
+        <button
+          className={styles.logoutBtn}
+          onClick={async () => {
+            await supabase.auth.signOut();
+            router.replace('/login');
+          }}
+        >
           <LogOut size={18} />
           Abmelden
-        </Link>
+        </button>
       </div>
     </aside>
   );

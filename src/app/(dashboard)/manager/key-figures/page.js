@@ -25,7 +25,32 @@ export default function KeyFiguresPage() {
   };
 
   const handleExport = () => {
-    alert('Exported!');
+    if (filteredOrders.length === 0) {
+      alert("Keine Daten zum Exportieren vorhanden.");
+      return;
+    }
+
+    const headers = ["Order ID", "Type", "Revenue (EUR)", "Plan DB (EUR)", "Actual DB (EUR)", "Status"];
+    const csvRows = [
+      headers.join(","),
+      ...filteredOrders.map(o => [
+        `"${o.display_id || o.id}"`,
+        `"${o.type || ''}"`,
+        o.revenue || 0,
+        o.plan_db || 0,
+        o.actual_db || 0,
+        `"${o.status || ''}"`
+      ].join(","))
+    ];
+
+    const csvContent = "data:text/csv;charset=utf-8,\uFEFF" + csvRows.join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `key_figures_export_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const filteredOrders = orders.filter(o => {
@@ -131,7 +156,7 @@ export default function KeyFiguresPage() {
           <tbody>
             {filteredOrders.map(o => (
               <tr key={o.id} style={{ borderBottom: '1px solid #e2e8f0' }}>
-                <td style={{ padding: '16px 24px', fontWeight: '500' }}>{o.id ? o.id.substring(0, 8) + '...' : ''}</td>
+                <td style={{ padding: '16px 24px', fontWeight: '500' }}>{o.display_id || (o.id ? o.id.substring(0, 8) + '...' : '')}</td>
                 <td style={{ padding: '16px 24px' }}>{o.type}</td>
                 <td style={{ padding: '16px 24px' }}>{formatCurrency(o.revenue)}</td>
                 <td style={{ padding: '16px 24px' }}>{formatCurrency(o.plan_db)}</td>

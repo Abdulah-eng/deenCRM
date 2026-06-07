@@ -36,6 +36,19 @@ export default function Header({ title = "Dashboard", subtitle = "Übersicht" })
     loadUser();
   }, [router]);
 
+  // Role-specific routes for profile and settings navigation
+  const roleRoutes = React.useMemo(() => {
+    const role = userProfile?.role;
+    const routeMap = {
+      'admin':   { profile: '/settings',          settings: '/settings' },
+      'manager': { profile: '/account/settings',  settings: '/account/settings' },
+      'finance': { profile: '/account/settings',  settings: '/account/settings' },
+      'sales':   { profile: '/account/settings',  settings: '/account/settings' },
+      'crew':    { profile: '/account/settings',  settings: '/account/settings' },
+    };
+    return routeMap[role] || { profile: '/login', settings: '/login' };
+  }, [userProfile]);
+
   const roleInfo = React.useMemo(() => {
     if (userProfile) {
       const roleMap = {
@@ -165,11 +178,11 @@ export default function Header({ title = "Dashboard", subtitle = "Übersicht" })
                 </div>
               </div>
               <div className={styles.userDropdownList}>
-                <button className={styles.udItem} onClick={() => setShowUserMenu(false)}>
+                <button className={styles.udItem} onClick={() => { setShowUserMenu(false); router.push(roleRoutes.profile); }}>
                   <User size={16} />
                   Mein Profil
                 </button>
-                <button className={styles.udItem} onClick={() => setShowUserMenu(false)}>
+                <button className={styles.udItem} onClick={() => { setShowUserMenu(false); router.push(roleRoutes.settings); }}>
                   <Settings size={16} />
                   Einstellungen
                 </button>

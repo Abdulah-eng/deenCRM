@@ -39,19 +39,49 @@ export default function AllOrders() {
   const [formValue, setFormValue] = useState('0.00');
   const [formNotes, setFormNotes] = useState('');
 
+  // Dropdown & Form Details States
+  const [selectedCompany, setSelectedCompany] = useState('');
+  const [selectedCrew, setSelectedCrew] = useState('');
+  const [formArea, setFormArea] = useState('0');
+  const [formAssemblyHeight, setFormAssemblyHeight] = useState('0');
+  const [formSystemType, setFormSystemType] = useState('Fußbodenheizung');
+  const [formPipeLength, setFormPipeLength] = useState('0');
+  const [formCircuits, setFormCircuits] = useState('0');
+  const [formConnectionPower, setFormConnectionPower] = useState('0');
+  const [formScheduledDate, setFormScheduledDate] = useState('');
+  const [dbCustomers, setDbCustomers] = useState([]);
+  const [dbCompanies, setDbCompanies] = useState([]);
+  const [dbCrews, setDbCrews] = useState([]);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [saving, setSaving] = useState(false);
+
   useEffect(() => {
-    async function fetchOrders() {
-      const { data, error } = await supabase
+    async function fetchInitialData() {
+      // 1. Fetch orders
+      const { data: ordData, error } = await supabase
         .from('orders')
         .select('*, customers(name), crews(name)')
         .order('created_at', { ascending: false });
-        
-      if (!error && data) {
-        setOrders(data);
+      if (!error && ordData) setOrders(ordData);
+
+      // 2. Fetch customers
+      const { data: custData } = await supabase.from('customers').select('id, name');
+      if (custData) setDbCustomers(custData);
+
+      // 3. Fetch companies
+      const { data: compData } = await supabase.from('companies').select('id, name');
+      if (compData) {
+        setDbCompanies(compData);
+        if (compData.length > 0) setSelectedCompany(compData[0].id);
       }
+
+      // 4. Fetch crews
+      const { data: crewData } = await supabase.from('crews').select('id, name');
+      if (crewData) setDbCrews(crewData);
+
       setLoading(false);
     }
-    fetchOrders();
+    fetchInitialData();
   }, []);
 
   const addSubTask = () => {
@@ -99,6 +129,139 @@ export default function AllOrders() {
       alert("Fehler beim Analysieren des PDFs.");
     }
     setIsParsing(false);
+  };
+
+  const handleSaveOrder = async () => {
+    if (!formCustomer || !selectedCompany) {
+      alert("Bitte Kundenname und Unternehmen eingeben.");
+      return;
+    }
+    setSaving(true);
+    try {
+      // 1. Resolve customer
+      let customerId;
+      const existingCustomer = dbCustomers.find(c => c.name.toLowerCase() === formCustomer.trim().toLowerCase());
+      if (existingCustomer) {
+        customerId = existingCustomer.id;
+      } else {
+        const { data: newCust, error: custErr } = await supabase
+          .from('customers')
+          .insert([{ name: formCustomer.trim() }])
+          .select();
+        if (custErr) throw custErr;
+        customerId = newCust[0].id;
+      }
+
+      // 2. Generate display ID
+      const randomDigits = Math.floor(1000 + Math.random() * 9000);
+      const displayId = `ORD-2026-${randomDigits}`;
+
+      // 3. Prepare order type and database fields
+      const orderType = modalOrderType.toUpperCase(); // SCREED, HEATING, ELECTRICAL
+      const rev = Number(formValue) || 0;
+      const planDb = rev * 0.25;
+
+      const orderData = {
+        display_id: displayId,
+        customer_id: customerId,
+        company_id: selectedCompany,
+        type: orderType,
+        crew_id: selectedCrew || null,
+        location: formAddress || 'München',
+        area: Number(formArea) || 0,
+        assembly_height: modalOrderType === 'Screed' ? (Number(formAssemblyHeight) || null) : null,
+        system_type: modalOrderType === 'Heating' ? formSystemType : null,
+        pipe_length: modalOrderType === 'Heating' ? (Number(formPipeLength) || null) : null,
+        circuits: modalOrderType === 'Electrical' ? (Number(formCircuits) || null) : null,
+        connection_power: modalOrderType === 'Electrical' ? (Number(formConnectionPower) || null) : null,
+        revenue: rev,
+        plan_db: planDb,
+        actual_db: planDb,
+        status: formScheduledDate ? 'SCHEDULED' : 'NEW',
+        scheduled_date: formScheduledDate || null,
+        description: formNotes || null
+      };
+
+      const { data, error } = await supabase
+        .from('orders')
+        .insert([orderData])
+        .select();
+
+      if (error) throw error;
+
+      alert('Auftrag erfolgreich erstellt!');
+      setShowModal(false);
+      
+      // Refresh list
+      const { data: refOrders } = await supabase
+        .from('orders')
+        .select('*, customers(name), crews(name)')
+        .order('created_at', { ascending: false });
+      if (refOrders) setOrders(refOrders);
+
+      // Reset form states
+      setFormCustomer('');
+      setFormAddress('');
+      setFormValue('0.00');
+      setFormNotes('');
+      setFormArea('0');
+      setFormAssemblyHeight('0');
+      setFormPipeLength('0');
+      setFormCircuits('0');
+      setFormConnectionPower('0');
+      setFormScheduledDate('');
+    } catch (err) {
+      console.error(err);
+      alert("Fehler beim Erstellen des Auftrags: " + err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteOrder = async (orderId) => {
+    if (confirm("Möchten Sie diesen Auftrag wirklich löschen?")) {
+      const { error } = await supabase.from('orders').delete().eq('id', orderId);
+      if (error) {
+        alert("Fehler beim Löschen des Auftrags: " + error.message);
+      } else {
+        setOrders(prev => prev.filter(o => o.id !== orderId));
+      }
+    }
+  };
+
+  const handleExport = () => {
+    if (filtered.length === 0) {
+      alert("Keine Aufträge zum Exportieren vorhanden.");
+      return;
+    }
+    
+    // Create CSV content
+    const headers = ["Auftrag #", "Kunde", "Typ", "Team", "Ort", "Flaeche (m2)", "Umsatz (EUR)", "Plan-DB (EUR)", "Ist-DB (EUR)", "Status", "Datum"];
+    const csvRows = [
+      headers.join(","), // header row
+      ...filtered.map(o => [
+        `"${o.display_id || ''}"`,
+        `"${o.customers?.name || 'Unbekannt'}"`,
+        `"${o.type || ''}"`,
+        `"${o.crews?.name || 'Nicht zugewiesen'}"`,
+        `"${o.location || ''}"`,
+        `"${o.area || ''}"`,
+        `"${o.revenue || ''}"`,
+        `"${o.plan_db || ''}"`,
+        `"${o.actual_db || ''}"`,
+        `"${o.status || ''}"`,
+        `"${o.scheduled_date || ''}"`
+      ].join(","))
+    ];
+    
+    const csvContent = "data:text/csv;charset=utf-8,\uFEFF" + csvRows.join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `auftraege_export_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const filtered = orders.filter(o => {
@@ -149,7 +312,7 @@ export default function AllOrders() {
             <option value="NEW">NEU</option>
           </select>
           <input type="date" className={styles.filterSelect} />
-          <button className={styles.exportBtn}>
+          <button className={styles.exportBtn} onClick={handleExport}>
             <Download size={14} style={{ marginRight: 6 }} /> Exportieren
           </button>
         </div>
@@ -229,9 +392,8 @@ export default function AllOrders() {
                         <td><span className={styles.date}>{o.scheduled_date || '—'}</span></td>
                         <td>
                           <div className={styles.actions}>
-                            <button className={styles.actionBtn}><Eye size={13} color="#009ef7" /></button>
-                            <button className={styles.actionBtn}><Edit3 size={13} color="#50cd89" /></button>
-                            <button className={styles.actionBtn}><Trash2 size={13} color="#f1416c" /></button>
+                            <button className={styles.actionBtn} onClick={() => setSelectedOrder(o)} title="Details"><Eye size={13} color="#009ef7" /></button>
+                            <button className={styles.actionBtn} onClick={() => handleDeleteOrder(o.id)} title="Löschen"><Trash2 size={13} color="#f1416c" /></button>
                           </div>
                         </td>
                       </tr>
@@ -275,10 +437,10 @@ export default function AllOrders() {
                 </div>
                 <div className={styles.formGroup}>
                   <label>Unternehmen *</label>
-                  <select className={styles.formInput}>
-                    <option value="Estrich Werke Süddeutschland">Estrich Werke Süddeutschland</option>
-                    <option value="Heiz Werke Süddeutschland">Heiz Werke Süddeutschland</option>
-                    <option value="Elektro Werke Süddeutschland">Elektro Werke Süddeutschland</option>
+                  <select className={styles.formInput} value={selectedCompany} onChange={e => setSelectedCompany(e.target.value)}>
+                    {dbCompanies.map(c => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
                   </select>
                 </div>
                 <div className={styles.formGroup}>
@@ -302,11 +464,11 @@ export default function AllOrders() {
                   <>
                     <div className={styles.formGroup}>
                       <label>Fläche (m²)</label>
-                      <input type="number" defaultValue="0" className={styles.formInput} />
+                      <input type="number" value={formArea} onChange={e => setFormArea(e.target.value)} className={styles.formInput} />
                     </div>
                     <div className={styles.formGroup}>
                       <label>Aufbauhöhe (mm)</label>
-                      <input type="number" defaultValue="0" className={styles.formInput} />
+                      <input type="number" value={formAssemblyHeight} onChange={e => setFormAssemblyHeight(e.target.value)} className={styles.formInput} />
                     </div>
                   </>
                 )}
@@ -314,11 +476,15 @@ export default function AllOrders() {
                   <>
                     <div className={styles.formGroup}>
                       <label>Systemtyp</label>
-                      <select className={styles.formInput}><option>Fußbodenheizung</option><option>Heizkörper</option><option>Wärmepumpe</option></select>
+                      <select className={styles.formInput} value={formSystemType} onChange={e => setFormSystemType(e.target.value)}>
+                        <option value="Fußbodenheizung">Fußbodenheizung</option>
+                        <option value="Heizkörper">Heizkörper</option>
+                        <option value="Wärmepumpe">Wärmepumpe</option>
+                      </select>
                     </div>
                     <div className={styles.formGroup}>
                       <label>Rohrlänge (m)</label>
-                      <input type="number" defaultValue="0" className={styles.formInput} />
+                      <input type="number" value={formPipeLength} onChange={e => setFormPipeLength(e.target.value)} className={styles.formInput} />
                     </div>
                   </>
                 )}
@@ -326,11 +492,11 @@ export default function AllOrders() {
                   <>
                     <div className={styles.formGroup}>
                       <label>Anzahl der Stromkreise</label>
-                      <input type="number" defaultValue="0" className={styles.formInput} />
+                      <input type="number" value={formCircuits} onChange={e => setFormCircuits(e.target.value)} className={styles.formInput} />
                     </div>
                     <div className={styles.formGroup}>
                       <label>Anschlussleistung (kW)</label>
-                      <input type="number" defaultValue="0" className={styles.formInput} />
+                      <input type="number" value={formConnectionPower} onChange={e => setFormConnectionPower(e.target.value)} className={styles.formInput} />
                     </div>
                   </>
                 )}
@@ -340,11 +506,16 @@ export default function AllOrders() {
               <div className={styles.formRow}>
                 <div className={styles.formGroup}>
                   <label>Primäres Team zuweisen</label>
-                  <select className={styles.formInput}><option>Team A</option><option>Team B</option><option>Team C</option></select>
+                  <select className={styles.formInput} value={selectedCrew} onChange={e => setSelectedCrew(e.target.value)}>
+                    <option value="">Nicht zugewiesen</option>
+                    {dbCrews.map(c => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </select>
                 </div>
                 <div className={styles.formGroup}>
                   <label>Geplantes Datum</label>
-                  <input type="date" className={styles.formInput} />
+                  <input type="date" value={formScheduledDate} onChange={e => setFormScheduledDate(e.target.value)} className={styles.formInput} />
                 </div>
                 <div className={styles.formGroup}>
                   <label>Geschätzter Wert (€)</label>
@@ -404,10 +575,74 @@ export default function AllOrders() {
               <button 
                 className="btn btn-primary" 
                 style={{ backgroundColor: '#7239ea' }}
-                onClick={() => { alert('Auftrag erfolgreich erstellt!'); setShowModal(false); }}
+                onClick={handleSaveOrder}
+                disabled={saving}
               >
-                ✓ Auftrag erstellen
+                {saving ? 'Erstelle...' : '✓ Auftrag erstellen'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Order Detail Modal */}
+      {selectedOrder && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, backdropFilter: 'blur(3px)' }}>
+          <div style={{ background: 'var(--card-bg)', borderRadius: '16px', width: '100%', maxWidth: '600px', boxShadow: '0 24px 80px rgba(0,0,0,0.2)', border: '1px solid var(--card-border)', overflow: 'hidden' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '18px 24px', borderBottom: '1px solid var(--card-border)', background: 'linear-gradient(135deg, rgba(114,57,234,0.06), rgba(114,57,234,0.02))' }}>
+              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: 'var(--header-text)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <ClipboardList size={18} color="#7239ea" /> Order Details - {selectedOrder.display_id || selectedOrder.id}
+              </h3>
+              <button onClick={() => setSelectedOrder(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--body-text-muted)' }}><X size={20} /></button>
+            </div>
+            <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', maxHeight: '70vh', overflowY: 'auto' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div>
+                  <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--body-text-muted)', textTransform: 'uppercase' }}>Customer</label>
+                  <div style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--header-text)', marginTop: '4px' }}>{selectedOrder.customers?.name || 'Unbekannt'}</div>
+                </div>
+                <div>
+                  <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--body-text-muted)', textTransform: 'uppercase' }}>Order Type</label>
+                  <div style={{ fontSize: '14px', fontWeight: '500', color: 'var(--header-text)', marginTop: '4px' }}>{selectedOrder.type}</div>
+                </div>
+                <div>
+                  <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--body-text-muted)', textTransform: 'uppercase' }}>Assigned Crew</label>
+                  <div style={{ fontSize: '14px', color: 'var(--header-text)', marginTop: '4px' }}>{selectedOrder.crews?.name || 'Nicht zugewiesen'}</div>
+                </div>
+                <div>
+                  <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--body-text-muted)', textTransform: 'uppercase' }}>Status</label>
+                  <div style={{ marginTop: '4px' }}>
+                    <span style={{ padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: '600', backgroundColor: STATUS_COLORS[selectedOrder.status]?.bg || '#eee', color: STATUS_COLORS[selectedOrder.status]?.color || '#333' }}>
+                      {selectedOrder.status}
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--body-text-muted)', textTransform: 'uppercase' }}>Location</label>
+                  <div style={{ fontSize: '14px', color: 'var(--header-text)', marginTop: '4px' }}>{selectedOrder.location || '—'}</div>
+                </div>
+                <div>
+                  <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--body-text-muted)', textTransform: 'uppercase' }}>Scheduled Date</label>
+                  <div style={{ fontSize: '14px', color: 'var(--header-text)', marginTop: '4px' }}>{selectedOrder.scheduled_date || '—'}</div>
+                </div>
+                <div>
+                  <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--body-text-muted)', textTransform: 'uppercase' }}>Area</label>
+                  <div style={{ fontSize: '14px', color: 'var(--header-text)', marginTop: '4px' }}>{selectedOrder.area ? `${selectedOrder.area} m²` : '—'}</div>
+                </div>
+                <div>
+                  <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--body-text-muted)', textTransform: 'uppercase' }}>Revenue</label>
+                  <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#10b981', marginTop: '4px' }}>{selectedOrder.revenue ? `€ ${Number(selectedOrder.revenue).toLocaleString()}` : '—'}</div>
+                </div>
+              </div>
+              {selectedOrder.description && (
+                <div style={{ borderTop: '1px solid var(--card-border)', paddingTop: '16px' }}>
+                  <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--body-text-muted)', textTransform: 'uppercase' }}>Notes / Description</label>
+                  <div style={{ fontSize: '13px', color: 'var(--body-text)', marginTop: '4px', whiteSpace: 'pre-wrap' }}>{selectedOrder.description}</div>
+                </div>
+              )}
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '14px 24px', borderTop: '1px solid var(--card-border)', background: 'var(--body-bg)' }}>
+              <button onClick={() => setSelectedOrder(null)} style={{ padding: '9px 18px', borderRadius: '8px', border: '1px solid var(--card-border)', background: 'var(--card-bg)', color: 'var(--body-text)', fontSize: '13px', cursor: 'pointer' }}>Close</button>
             </div>
           </div>
         </div>

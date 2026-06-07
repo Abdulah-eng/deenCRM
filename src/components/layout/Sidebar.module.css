@@ -157,6 +157,11 @@
   width: 100%;
   border-radius: 6px;
   transition: all 0.2s ease;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
 }
 
 .logoutBtn:hover {

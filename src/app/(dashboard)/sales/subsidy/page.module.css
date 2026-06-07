@@ -2,34 +2,70 @@
   padding: 30px;
 }
 
-.header {
+.welcomeSection {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 24px;
 }
 
-.description {
-  color: var(--body-text-muted);
+.welcome h2 {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--header-text);
+  margin-bottom: 4px;
+}
+
+.welcome p {
   font-size: 14px;
+  color: var(--body-text-muted);
 }
 
-.grid {
+.headerBtn {
+  background: #10b981;
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.headerBtn:hover {
+  opacity: 0.9;
+}
+
+.mainGrid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1.2fr 0.8fr;
   gap: 30px;
+  align-items: start;
 }
 
-.cardHeader {
-  padding: 20px 24px;
-  border-bottom: 1px solid var(--card-border);
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 28px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+.cardTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--header-text);
+  margin: 0 0 24px 0;
   display: flex;
   align-items: center;
   gap: 10px;
-  font-weight: 600;
-  font-size: 15px;
-  color: var(--header-text);
 }
 
-.cardBody {
-  padding: 24px;
+.form {
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -49,27 +85,23 @@
 
 .formGroup label {
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--body-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
-.input {
+.input, .select {
   width: 100%;
-  height: 40px;
+  height: 42px;
   background-color: var(--body-bg);
   border: 1px solid var(--card-border);
   border-radius: 6px;
   padding: 0 12px;
-  font-size: 13px;
+  font-size: 14px;
   color: var(--body-text);
   outline: none;
-  transition: all 0.2s;
   font-family: inherit;
-}
-
-.input:focus {
-  border-color: var(--primary);
-  background-color: white;
 }
 
 .checkboxGroup {
@@ -83,32 +115,55 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 13px;
+  font-size: 14px;
   color: var(--body-text);
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox {
+  width: 18px;
+  height: 18px;
+  accent-color: #10b981;
   cursor: pointer;
 }
 
-.calcBtn {
-  margin-top: 20px;
-  width: 100%;
+.calculateBtn {
+  background: #10b981;
+  color: white;
+  border: none;
+  padding: 14px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
   justify-content: center;
-  background-color: #009ef7; /* Custom blue from design */
+  align-items: center;
+  gap: 10px;
+  transition: opacity 0.2s;
+  width: 100%;
+  margin-top: 10px;
 }
 
-/* Info Cards */
-.infoCol {
+.calculateBtn:hover {
+  opacity: 0.9;
+}
+
+/* Info Cards Stack */
+.infoStack {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
 }
 
 .infoCard {
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
+  border-radius: 12px;
   padding: 20px;
-  border-radius: 8px;
-  border: 1px dashed;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
 }
 
 .infoIcon {
@@ -121,55 +176,116 @@
   flex-shrink: 0;
 }
 
-.infoContent h4 {
+.infoDetails h4 {
   font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 6px;
+  font-weight: 700;
+  margin: 0 0 4px 0;
 }
 
-.infoContent p {
-  font-size: 12px;
+.infoDetails p {
+  font-size: 13px;
+  margin: 0;
   line-height: 1.5;
 }
 
-/* BAFA */
-.infoBafa {
-  background-color: rgba(80, 205, 137, 0.05);
-  border-color: rgba(80, 205, 137, 0.4);
-}
-.infoBafa .infoIcon {
-  background-color: rgba(80, 205, 137, 0.1);
-  color: #50cd89;
-}
-.infoBafa h4 { color: #1e1e2d; }
-.infoBafa p { color: var(--body-text-muted); }
-
-/* KfW */
-.infoKfw {
-  background-color: rgba(0, 158, 247, 0.05);
-  border-color: rgba(0, 158, 247, 0.4);
-}
-.infoKfw .infoIcon {
-  background-color: rgba(0, 158, 247, 0.1);
-  color: #009ef7;
+/* Results section styling */
+.resultsSection {
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px dashed var(--card-border);
 }
 
-/* State */
-.infoState {
-  background-color: rgba(255, 199, 0, 0.05);
-  border-color: rgba(255, 199, 0, 0.4);
-}
-.infoState .infoIcon {
-  background-color: rgba(255, 199, 0, 0.1);
-  color: #ffc700;
+.resultsCard {
+  background: var(--body-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
 }
 
-/* Bonus */
-.infoBonus {
-  background-color: rgba(114, 57, 234, 0.05);
-  border-color: rgba(114, 57, 234, 0.4);
+.resultRow {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  font-size: 14px;
+  color: var(--body-text-muted);
+  align-items: center;
 }
-.infoBonus .infoIcon {
-  background-color: rgba(114, 57, 234, 0.1);
-  color: #7239ea;
+
+.resultRow:last-child {
+  margin-bottom: 0;
+}
+
+.resultValue {
+  font-weight: 600;
+  color: var(--header-text);
+}
+
+.resultRateBadge {
+  font-size: 13px;
+  font-weight: 700;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+  padding: 4px 12px;
+  border-radius: 16px;
+}
+
+.resultTotalRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--header-text);
+  border-top: 1px solid var(--card-border);
+  padding-top: 14px;
+  margin-top: 14px;
+}
+
+.resultTotalValue {
+  color: #10b981;
+  font-size: 20px;
+}
+
+.notesCard {
+  background: rgba(255, 199, 0, 0.05);
+  border: 1px solid rgba(255, 199, 0, 0.2);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.notesTitle {
+  font-size: 13px;
+  font-weight: 700;
+  color: #c99a00;
+  margin: 0 0 8px 0;
+}
+
+.notesList {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 12px;
+  color: var(--body-text-muted);
+  line-height: 1.6;
+}
+
+.saveBtn {
+  background: #34a853;
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  transition: opacity 0.2s;
+  width: 100%;
+}
+
+.saveBtn:hover {
+  opacity: 0.9;
 }

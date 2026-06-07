@@ -97,106 +97,116 @@ export default function ActualCostsPage() {
   const otherCosts = costs.filter(c => c.cost_type === 'OTHER').reduce((a, c) => a + (c.amount || 0), 0);
 
   return (
-    <div className={styles.container}>
-      <Header title="Actual Costs" />
-      
-      <div className={styles.kpiGrid}>
-        <div className={styles.kpiCard}><h3>Total Costs</h3><p>€{totalCosts.toFixed(2)}</p></div>
-        <div className={styles.kpiCard}><h3>Material Costs</h3><p>€{materialCosts.toFixed(2)}</p></div>
-        <div className={styles.kpiCard}><h3>Crew Costs</h3><p>€{crewCosts.toFixed(2)}</p></div>
-        <div className={styles.kpiCard}><h3>Other Costs</h3><p>€{otherCosts.toFixed(2)}</p></div>
-      </div>
-
-      <div className={styles.controls}>
-        <div className={styles.searchBox}>
-          <Search size={20} />
-          <input type="text" placeholder="Search desc or order..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+    <>
+      <Header title="Actual Costs" subtitle="Finanzen / Ist-Kosten" />
+      <div className={styles.container}>
+        
+        <div className={styles.kpiGrid}>
+          <div className={styles.kpiCard}><h3>Total Costs</h3><p>€{totalCosts.toFixed(2)}</p></div>
+          <div className={styles.kpiCard}><h3>Material Costs</h3><p>€{materialCosts.toFixed(2)}</p></div>
+          <div className={styles.kpiCard}><h3>Crew Costs</h3><p>€{crewCosts.toFixed(2)}</p></div>
+          <div className={styles.kpiCard}><h3>Other Costs</h3><p>€{otherCosts.toFixed(2)}</p></div>
         </div>
-        <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)}>
-          <option value="All">All Types</option>
-          <option value="MATERIAL">Material</option>
-          <option value="CREW">Crew</option>
-          <option value="EQUIPMENT">Equipment</option>
-          <option value="OTHER">Other</option>
-        </select>
-        <button className={styles.addButton} onClick={() => { setEditingId(null); setFormData({order_id:'',cost_type:'MATERIAL',amount:'',cost_date:'',description:''}); setIsModalOpen(true); }}>
-          <Plus size={20} /> Add Cost Entry
-        </button>
-      </div>
 
-      <table className={styles.table}>
-        <thead>
-          <tr>
-            <th>Cost ID</th>
-            <th>Order</th>
-            <th>Customer</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Amount</th>
-            <th>Date</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredCosts.map(c => (
-            <tr key={c.id}>
-              <td>{c.id}</td>
-              <td>{c.orders?.display_id || '-'}</td>
-              <td>{c.orders?.customers?.name || '-'}</td>
-              <td>{c.cost_type}</td>
-              <td>{c.description}</td>
-              <td>€{c.amount}</td>
-              <td>{c.cost_date}</td>
-              <td>
-                <button onClick={() => handleEdit(c)}><Edit2 size={16} /></button>
-                <button onClick={() => handleDelete(c.id)}><Trash2 size={16} /></button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-
-      {isModalOpen && (
-        <div className={styles.modalOverlay}>
-          <div className={styles.modal}>
-            <div className={styles.modalHeader}>
-              <h2>{editingId ? 'Edit Cost Entry' : 'New Cost Entry'}</h2>
-              <button onClick={() => setIsModalOpen(false)}><X size={24} /></button>
-            </div>
-            <form onSubmit={handleSubmit}>
-              <div className={styles.formGroup}>
-                <label>Order</label>
-                <select required value={formData.order_id} onChange={e => setFormData({...formData, order_id: e.target.value})}>
-                  <option value="">Select Order...</option>
-                  {orders.map(o => <option key={o.id} value={o.id}>{o.display_id}</option>)}
-                </select>
-              </div>
-              <div className={styles.formGroup}>
-                <label>Cost Type</label>
-                <select value={formData.cost_type} onChange={e => setFormData({...formData, cost_type: e.target.value})}>
-                  <option value="MATERIAL">Material</option>
-                  <option value="CREW">Crew</option>
-                  <option value="EQUIPMENT">Equipment</option>
-                  <option value="OTHER">Other</option>
-                </select>
-              </div>
-              <div className={styles.formGroup}>
-                <label>Amount (€)</label>
-                <input type="number" required step="0.01" value={formData.amount} onChange={e => setFormData({...formData, amount: e.target.value})} />
-              </div>
-              <div className={styles.formGroup}>
-                <label>Date</label>
-                <input type="date" required value={formData.cost_date} onChange={e => setFormData({...formData, cost_date: e.target.value})} />
-              </div>
-              <div className={styles.formGroup}>
-                <label>Description</label>
-                <input type="text" required value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} />
-              </div>
-              <button type="submit" className={styles.submitBtn}>Save</button>
-            </form>
+        <div className={styles.controls}>
+          <div className={styles.searchBox}>
+            <Search size={20} />
+            <input type="text" placeholder="Search desc or order..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
           </div>
+          <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)}>
+            <option value="All">All Types</option>
+            <option value="MATERIAL">Material</option>
+            <option value="CREW">Crew</option>
+            <option value="EQUIPMENT">Equipment</option>
+            <option value="OTHER">Other</option>
+          </select>
+          <button className={styles.addButton} onClick={() => { setEditingId(null); setFormData({order_id:'',cost_type:'MATERIAL',amount:'',cost_date:'',description:''}); setIsModalOpen(true); }}>
+            <Plus size={20} /> Add Cost Entry
+          </button>
         </div>
-      )}
-    </div>
+
+        <div className="card" style={{ overflowX: 'auto', marginTop: '20px' }}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>Cost ID</th>
+                <th>Order</th>
+                <th>Customer</th>
+                <th>Type</th>
+                <th>Description</th>
+                <th>Amount</th>
+                <th>Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredCosts.map(c => (
+                <tr key={c.id}>
+                  <td>{c.id.substring(0, 8)}...</td>
+                  <td>{c.orders?.display_id || '-'}</td>
+                  <td>{c.orders?.customers?.name || '-'}</td>
+                  <td>{c.cost_type}</td>
+                  <td>{c.description}</td>
+                  <td>€{c.amount}</td>
+                  <td>{c.cost_date}</td>
+                  <td>
+                    <div className={styles.actions}>
+                      <button className={styles.actionBtn} onClick={() => handleEdit(c)} title="Edit">
+                        <Edit2 size={15} color="#50cd89" />
+                      </button>
+                      <button className={styles.actionBtn} onClick={() => handleDelete(c.id)} title="Delete">
+                        <Trash2 size={15} color="#f1416c" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {isModalOpen && (
+          <div className={styles.modalOverlay}>
+            <div className={styles.modal}>
+              <div className={styles.modalHeader}>
+                <h2>{editingId ? 'Edit Cost Entry' : 'New Cost Entry'}</h2>
+                <button onClick={() => setIsModalOpen(false)}><X size={24} /></button>
+              </div>
+              <form onSubmit={handleSubmit}>
+                <div className={styles.formGroup}>
+                  <label>Order</label>
+                  <select required value={formData.order_id} onChange={e => setFormData({...formData, order_id: e.target.value})}>
+                    <option value="">Select Order...</option>
+                    {orders.map(o => <option key={o.id} value={o.id}>{o.display_id}</option>)}
+                  </select>
+                </div>
+                <div className={styles.formGroup}>
+                  <label>Cost Type</label>
+                  <select value={formData.cost_type} onChange={e => setFormData({...formData, cost_type: e.target.value})}>
+                    <option value="MATERIAL">Material</option>
+                    <option value="CREW">Crew</option>
+                    <option value="EQUIPMENT">Equipment</option>
+                    <option value="OTHER">Other</option>
+                  </select>
+                </div>
+                <div className={styles.formGroup}>
+                  <label>Amount (€)</label>
+                  <input type="number" required step="0.01" value={formData.amount} onChange={e => setFormData({...formData, amount: e.target.value})} />
+                </div>
+                <div className={styles.formGroup}>
+                  <label>Date</label>
+                  <input type="date" required value={formData.cost_date} onChange={e => setFormData({...formData, cost_date: e.target.value})} />
+                </div>
+                <div className={styles.formGroup}>
+                  <label>Description</label>
+                  <input type="text" required value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} />
+                </div>
+                <button type="submit" className={styles.submitBtn}>Save</button>
+              </form>
+            </div>
+          </div>
+        )}
+      </div>
+    </>
   );
 }

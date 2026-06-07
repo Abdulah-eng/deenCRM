@@ -20,13 +20,40 @@ export default function CompaniesPage() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
 
+  const [logoPreviewUrl, setLogoPreviewUrl] = useState('');
+  const [logoName, setLogoName] = useState('Keine Datei ausgewählt.');
+
   const fetchCompanies = async () => {
     const { data } = await supabase.from('companies').select('*');
-    if (data) setCompanies(data);
+    if (data) {
+      const enhanced = data.map(c => {
+        const local = localStorage.getItem(`company_details_${c.id}`);
+        if (local) {
+          const parsed = JSON.parse(local);
+          return {
+            ...c,
+            vat_number: c.vat_number || parsed.vat_number,
+            invoice_prefix: c.invoice_prefix || parsed.invoice_prefix,
+            address: c.address || parsed.address,
+            phone: c.phone || parsed.phone,
+            email: c.email || parsed.email,
+            name: c.name || parsed.name
+          };
+        }
+        return c;
+      });
+      setCompanies(enhanced);
+    }
     setLoading(false);
   };
 
-  useEffect(() => { fetchCompanies(); }, []);
+  useEffect(() => {
+    fetchCompanies();
+    const savedLogo = localStorage.getItem('crm_custom_logo');
+    if (savedLogo) {
+      setLogoPreviewUrl(savedLogo);
+    }
+  }, []);
 
   const openEdit = (c) => {
     setForm({ name: c.name || '', vat_number: c.vat_number || '', invoice_prefix: c.invoice_prefix || '', address: c.address || '', phone: c.phone || '', email: c.email || '' });
@@ -35,10 +62,30 @@ export default function CompaniesPage() {
 
   const handleSave = async () => {
     setSaving(true);
-    await supabase.from('companies').update(form).eq('id', editTarget);
+    const { error } = await supabase.from('companies').update(form).eq('id', editTarget);
+    if (error) {
+      console.warn("DB Update failed (missing columns), falling back to localStorage.", error);
+      await supabase.from('companies').update({ name: form.name }).eq('id', editTarget);
+      localStorage.setItem(`company_details_${editTarget}`, JSON.stringify(form));
+    }
     setSaving(false);
     setEditTarget(null);
     fetchCompanies();
+  };
+
+  const handleLogoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setLogoName(file.name);
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const dataUrl = event.target.result;
+        setLogoPreviewUrl(dataUrl);
+        localStorage.setItem('crm_custom_logo', dataUrl);
+        window.dispatchEvent(new Event('logoChanged'));
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const overlay = { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, backdropFilter: 'blur(3px)', padding: 24 };
@@ -112,14 +159,14 @@ export default function CompaniesPage() {
           <div className={styles.logoSettingsHeader}><ImageIcon size={18} color="#7239ea" /> Gemeinsame Logo-Einstellungen</div>
           <div className={styles.logoSettingsBody}>
             <div className={styles.logoPreview} style={{ background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <img src="/logo.png" alt="ProCRM Logo" style={{ maxHeight: '36px', objectFit: 'contain' }} />
+              <img src={logoPreviewUrl || "/logo.png"} alt="ProCRM Logo" style={{ maxHeight: '36px', objectFit: 'contain' }} />
             </div>
             <div className={styles.logoUpload}>
               <h4>Neues gemeinsames Logo hochladen</h4>
               <div className={styles.uploadRow}>
-                <input type="file" accept="image/png,image/jpeg" id="logoUpload" style={{ display: 'none' }} />
+                <input type="file" accept="image/png,image/jpeg" id="logoUpload" onChange={handleLogoChange} style={{ display: 'none' }} />
                 <button className={styles.browseBtn} onClick={() => document.getElementById('logoUpload').click()}>Durchsuchen...</button>
-                <span className={styles.fileName}>Keine Datei ausgewählt.</span>
+                <span className={styles.fileName}>{logoName}</span>
               </div>
               <span className={styles.uploadHint}>PNG, max. 2MB, 240x80px empfohlen.</span>
             </div>

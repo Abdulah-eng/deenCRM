@@ -1,7 +1,8 @@
 "use client";
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Header from '@/components/layout/Header';
-import { FileText, TrendingUp, DollarSign, Percent } from 'lucide-react';
+import { FileText, TrendingUp, DollarSign, Percent, Plus } from 'lucide-react';
 import styles from './page.module.css';
 import { supabase } from '@/utils/supabase';
 
@@ -14,6 +15,7 @@ const STATUS_COLORS = {
 };
 
 export default function SalesDashboard() {
+  const router = useRouter();
   const [offers, setOffers] = useState([]);
   const [funnelData, setFunnelData] = useState([]);
   const [stats, setStats] = useState({ openOffers: 0, converted: 0, totalValue: 0, conversionRate: 0 });
@@ -41,12 +43,14 @@ export default function SalesDashboard() {
         
         let draft = 0;
         let sent = 0;
+        let pending = 0;
         let accepted = 0;
         let rejected = 0;
 
         offersData.forEach(o => {
           if (o.status === 'DRAFT') draft++;
-          if (o.status === 'SENT' || o.status === 'PENDING') sent++;
+          if (o.status === 'SENT') sent++;
+          if (o.status === 'PENDING') pending++;
           if (o.status === 'ACCEPTED') accepted++;
           if (o.status === 'REJECTED') rejected++;
           
@@ -65,13 +69,13 @@ export default function SalesDashboard() {
           conversionRate: convRate
         });
 
-        // Mocking some extra data so funnel isn't just 1 item if no data
+        const useFallback = totalCreated === 0;
         setFunnelData([
-          { label: 'Created', count: totalCreated || 28, color: '#a1a5b7' },
-          { label: 'Sent', count: sent || 20, color: '#3b82f6' },
-          { label: 'Negotiation', count: sent || 14, color: '#f59e0b' },
-          { label: 'Accepted', count: accepted || 12, color: '#10b981' },
-          { label: 'Rejected', count: rejected || 8, color: '#ef4444' },
+          { label: 'Created', count: useFallback ? 28 : totalCreated, color: '#a1a5b7' },
+          { label: 'Sent', count: useFallback ? 20 : sent, color: '#3b82f6' },
+          { label: 'Negotiation', count: useFallback ? 14 : pending, color: '#f59e0b' },
+          { label: 'Accepted', count: useFallback ? 12 : accepted, color: '#10b981' },
+          { label: 'Rejected', count: useFallback ? 8 : rejected, color: '#ef4444' },
         ]);
       }
       setLoading(false);
@@ -85,9 +89,14 @@ export default function SalesDashboard() {
     <>
       <Header title="Dashboard" subtitle="Dashboard" />
       <div className={styles.container}>
-        <div className={styles.welcome}>
-          <h2>Sales Dashboard</h2>
-          <p>Overview of offers, conversions, and pipeline.</p>
+        <div className={styles.welcomeSection}>
+          <div className={styles.welcome}>
+            <h2>Sales Dashboard</h2>
+            <p>Track your offers, conversions, and customer pipeline.</p>
+          </div>
+          <button className={styles.addBtn} onClick={() => router.push('/sales/offers?add=true')}>
+            <Plus size={16} /> New Offer
+          </button>
         </div>
 
         <div className={styles.kpiGrid}>

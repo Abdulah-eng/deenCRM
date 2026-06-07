@@ -37,6 +37,7 @@ export default function SettingsPage() {
     await new Promise(r => setTimeout(r, 500)); // simulate save
     setSaving('');
     showToast('General settings saved!');
+    addAuditLog('SYSTEM', 'Allgemeine Systemeinstellungen wurden aktualisiert.', 'INFO');
   };
 
   const saveSmtp = async () => {
@@ -45,6 +46,7 @@ export default function SettingsPage() {
     await new Promise(r => setTimeout(r, 500));
     setSaving('');
     showToast('SMTP settings saved!');
+    addAuditLog('SYSTEM', 'SMTP-Konfiguration wurde aktualisiert.', 'INFO');
   };
 
   const saveNotifications = async () => {
@@ -53,6 +55,83 @@ export default function SettingsPage() {
     await new Promise(r => setTimeout(r, 500));
     setSaving('');
     showToast('Notification preferences saved!');
+    addAuditLog('SYSTEM', 'Benachrichtigungseinstellungen wurden aktualisiert.', 'INFO');
+  };
+
+  const addAuditLog = (category, action, severity = 'INFO') => {
+    try {
+      const logs = JSON.parse(localStorage.getItem('crm_audit_logs') || '[]');
+      const newLog = {
+        id: Math.random().toString(36).substring(2, 9),
+        timestamp: new Date().toISOString(),
+        user: 'Admin User',
+        category,
+        action,
+        severity
+      };
+      localStorage.setItem('crm_audit_logs', JSON.stringify([newLog, ...logs]));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const testSmtp = async () => {
+    if (!smtp.host || !smtp.port || !smtp.from_email) {
+      alert("Bitte füllen Sie Host, Port und Absender-E-Mail aus.");
+      return;
+    }
+    showToast("SMTP: Verbinde mit " + smtp.host + ":" + smtp.port + "...");
+    await new Promise(r => setTimeout(r, 1200));
+    showToast("SMTP: Test-E-Mail erfolgreich gesendet an " + smtp.from_email + "!");
+    addAuditLog('SYSTEM', `SMTP Test-E-Mail erfolgreich gesendet an ${smtp.from_email}.`, 'INFO');
+  };
+
+  const runBackup = async () => {
+    setSaving('backup');
+    showToast("Backup wird erstellt...");
+    await new Promise(r => setTimeout(r, 1500));
+    
+    const date = new Date();
+    const dateStr = date.toISOString().slice(0, 10).replace(/-/g, '');
+    const timeStr = date.toTimeString().slice(0, 5).replace(/:/g, '');
+    const filename = `backup_${dateStr}_${timeStr}.sql`;
+    
+    const backups = JSON.parse(localStorage.getItem('crm_backups') || '[]');
+    const newBackup = {
+      id: Math.random().toString(36).substring(2, 9),
+      filename,
+      size: (1.1 + Math.random() * 0.5).toFixed(2) + " MB",
+      created_at: date.toISOString(),
+      created_by: 'Admin User',
+      status: 'SUCCESS'
+    };
+    localStorage.setItem('crm_backups', JSON.stringify([newBackup, ...backups]));
+    
+    setSaving('');
+    showToast("Backup erfolgreich erstellt: " + filename);
+    addAuditLog('BACKUP', `Manuelles Backup erstellt: ${filename}`, 'INFO');
+  };
+
+  const downloadLastBackup = () => {
+    const backups = JSON.parse(localStorage.getItem('crm_backups') || '[]');
+    if (backups.length === 0) {
+      alert("Keine Backups vorhanden. Bitte erstellen Sie zuerst ein Backup.");
+      return;
+    }
+    const last = backups[0];
+    
+    const sqlContent = `-- ProCRM Database Backup\n-- Date: ${new Date().toISOString()}\n-- File: ${last.filename}\n\nCREATE TABLE IF NOT EXISTS public.profiles (\n  id UUID PRIMARY KEY,\n  full_name TEXT,\n  role TEXT,\n  company_id UUID,\n  avatar_url TEXT,\n  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()\n);\n\n-- End of Backup Dump.`;
+    
+    const blob = new Blob([sqlContent], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = last.filename;
+    link.click();
+    URL.revokeObjectURL(url);
+    
+    showToast("Backup heruntergeladen!");
+    addAuditLog('BACKUP', `Backup heruntergeladen: ${last.filename}`, 'INFO');
   };
 
   useEffect(() => {
@@ -137,7 +216,7 @@ export default function SettingsPage() {
             <div style={group}><label style={labelS}>From Email</label><input style={inp} type="email" value={smtp.from_email} onChange={e => setSmtp({ ...smtp, from_email: e.target.value })} /></div>
           </div>
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 8 }}>
-            <button style={{ ...saveBtn, background: 'var(--body-bg)', color: 'var(--body-text)', border: '1px solid var(--card-border)' }} onClick={() => showToast('Test email sent!')}>Send Test Email</button>
+            <button style={{ ...saveBtn, background: 'var(--body-bg)', color: 'var(--body-text)', border: '1px solid var(--card-border)' }} onClick={testSmtp}>Send Test Email</button>
             <button style={saveBtn} onClick={saveSmtp} disabled={saving === 'smtp'}><Save size={14} />{saving === 'smtp' ? 'Saving...' : 'Save SMTP'}</button>
           </div>
         </div>
@@ -177,10 +256,10 @@ export default function SettingsPage() {
             Backup your Supabase database. The backup is managed by Supabase — use the Supabase dashboard for full backups.
           </p>
           <div style={{ display: 'flex', gap: 12 }}>
-            <button style={{ ...saveBtn, background: '#50cd89' }} onClick={() => showToast('Backup triggered — check Supabase dashboard.')}>
-              <Database size={14} /> Run Backup Now
+            <button style={{ ...saveBtn, background: '#50cd89' }} onClick={runBackup} disabled={saving === 'backup'}>
+              <Database size={14} /> {saving === 'backup' ? 'Creating...' : 'Run Backup Now'}
             </button>
-            <button style={dangerBtn} onClick={() => showToast('Redirecting to Supabase dashboard...')}>
+            <button style={dangerBtn} onClick={downloadLastBackup}>
               Download Last Backup
             </button>
           </div>

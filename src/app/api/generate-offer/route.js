@@ -9,7 +9,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Project details are required' }, { status: 400 });
     }
 
-    const ai = new GoogleGenAI({});
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
     const prompt = `
 You are an expert construction estimator for a German company. Based on the following project details provided by a salesman, generate a detailed offer/quote breakdown. 
@@ -20,35 +20,49 @@ Project Details / Checklist:
 ${projectDetails}
 """
 
-Return the estimation as a JSON object with a list of recommended services/materials and their estimated quantities and prices. 
-
-Output format exactly:
-{
-  "items": [
-    {
-      "description": "Item or Service Name",
-      "quantity": 100,
-      "unit": "m²",
-      "unitPrice": 15.50
-    }
-  ],
-  "estimatedTotal": 1550.00
-}
-    `;
+Return the estimation as a JSON object with a list of recommended services/materials and their estimated quantities and prices.
+`;
 
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: prompt,
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: 'object',
+          properties: {
+            items: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  description: { type: 'string' },
+                  quantity: { type: 'number' },
+                  unit: { type: 'string' },
+                  unitPrice: { type: 'number' }
+                },
+                required: ['description', 'quantity', 'unit', 'unitPrice']
+              }
+            },
+            estimatedTotal: { type: 'number' }
+          },
+          required: ['items', 'estimatedTotal']
+        }
+      }
     });
 
-    let rawJson = response.text;
-    if (rawJson.startsWith('\`\`\`json')) {
-      rawJson = rawJson.replace(/^\`\`\`json/, '').replace(/\`\`\`$/, '');
-    } else if (rawJson.startsWith('\`\`\`')) {
-      rawJson = rawJson.replace(/^\`\`\`/, '').replace(/\`\`\`$/, '');
+    let data;
+    try {
+      data = JSON.parse(response.text);
+    } catch (parseError) {
+      console.error("Failed to parse Gemini response text as JSON:", response.text);
+      const jsonMatch = response.text.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        data = JSON.parse(jsonMatch[0]);
+      } else {
+        throw parseError;
+      }
     }
-
-    const data = JSON.parse(rawJson);
 
     return NextResponse.json(data);
   } catch (error) {

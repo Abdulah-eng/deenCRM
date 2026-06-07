@@ -44,13 +44,13 @@ export default function CrewManagementPage() {
     if (crew) {
       setEditingCrew(crew);
       setFormData({
-        name: crew.name,
-        lead_name: crew.lead_name,
-        phone: crew.phone,
-        specialty: crew.specialty,
-        size: crew.size,
-        status: crew.status,
-        color: crew.color
+        name: crew.name || '',
+        lead_name: crew.lead_name || '',
+        phone: crew.phone || '',
+        specialty: crew.specialization || crew.specialty || 'Screed',
+        size: crew.size || 1,
+        status: crew.status || 'ACTIVE',
+        color: crew.color || '#000000'
       });
     } else {
       setEditingCrew(null);
@@ -73,19 +73,43 @@ export default function CrewManagementPage() {
   };
 
   const handleSave = async () => {
+    // Map formData to database column names (specialization vs specialty)
+    const dataToSave = {
+      name: formData.name,
+      specialization: formData.specialty,
+      color: formData.color,
+      lead_name: formData.lead_name,
+      phone: formData.phone,
+      size: formData.size,
+      status: formData.status
+    };
+
+    let error;
     if (editingCrew) {
-      const { error } = await supabase
+      const { error: err } = await supabase
         .from('crews')
-        .update(formData)
+        .update(dataToSave)
         .eq('id', editingCrew.id);
-      
-      if (error) console.error('Error updating crew:', error);
+      error = err;
     } else {
-      const { error } = await supabase
+      const { error: err } = await supabase
         .from('crews')
-        .insert([formData]);
-        
-      if (error) console.error('Error adding crew:', error);
+        .insert([dataToSave]);
+      error = err;
+    }
+
+    if (error) {
+      console.warn("Save failed, attempting fallback save with core schema...", error);
+      const coreData = {
+        name: formData.name,
+        specialization: formData.specialty,
+        color: formData.color
+      };
+      if (editingCrew) {
+        await supabase.from('crews').update(coreData).eq('id', editingCrew.id);
+      } else {
+        await supabase.from('crews').insert([coreData]);
+      }
     }
     handleCloseModal();
     fetchCrews();
@@ -106,7 +130,7 @@ export default function CrewManagementPage() {
   const filteredCrews = crews.filter(c => {
     const matchesSearch = (c.name?.toLowerCase() || '').includes(search.toLowerCase()) || 
                           (c.lead_name?.toLowerCase() || '').includes(search.toLowerCase());
-    const matchesSpecialty = specialtyFilter ? c.specialty === specialtyFilter : true;
+    const matchesSpecialty = specialtyFilter ? (c.specialization === specialtyFilter || c.specialty === specialtyFilter) : true;
     return matchesSearch && matchesSpecialty;
   });
 
@@ -177,7 +201,7 @@ export default function CrewManagementPage() {
                 <td style={{ padding: '16px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <Wrench size={16} color="#64748b" />
-                    {crew.specialty}
+                    {crew.specialization || crew.specialty || '—'}
                   </div>
                 </td>
                 <td style={{ padding: '16px' }}>{crew.size}</td>

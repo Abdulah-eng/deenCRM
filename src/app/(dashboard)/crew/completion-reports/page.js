@@ -9,6 +9,7 @@ export default function CompletionReportsPage() {
   const [reports, setReports] = useState([]);
   const [orders, setOrders] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [viewingReport, setViewingReport] = useState(null);
   
   // Modal form state
   const [selectedOrder, setSelectedOrder] = useState('');
@@ -138,7 +139,7 @@ export default function CompletionReportsPage() {
                     </td>
                     <td>
                       <div className={styles.actions}>
-                        <button className={styles.actionBtn} title="View Details">
+                        <button className={styles.actionBtn} title="View Details" onClick={() => setViewingReport(report)}>
                           <Eye size={14} color="var(--body-text-muted)" />
                         </button>
                       </div>
@@ -236,6 +237,74 @@ export default function CompletionReportsPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {viewingReport && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, backdropFilter: 'blur(3px)' }}>
+          <div style={{ background: 'var(--card-bg)', padding: '30px', borderRadius: '12px', width: '500px', maxWidth: '90%', maxHeight: '90vh', overflowY: 'auto', border: '1px solid var(--card-border)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid var(--card-border)', paddingBottom: '16px' }}>
+              <h3 style={{ margin: 0, fontSize: '20px', fontWeight: '700', color: 'var(--header-text)' }}>Report Details</h3>
+              <X style={{ cursor: 'pointer', color: 'var(--body-text-muted)' }} onClick={() => setViewingReport(null)} />
+            </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: '700', color: 'var(--body-text-muted)', textTransform: 'uppercase', marginBottom: '4px' }}>Report ID</label>
+                <div style={{ fontSize: '14px', color: 'var(--header-text)', fontWeight: '600' }}>REP-{viewingReport.id.slice(-6)}</div>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: '700', color: 'var(--body-text-muted)', textTransform: 'uppercase', marginBottom: '4px' }}>Order</label>
+                <div style={{ fontSize: '14px', color: 'var(--header-text)' }}>{viewingReport.display_id}</div>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: '700', color: 'var(--body-text-muted)', textTransform: 'uppercase', marginBottom: '4px' }}>Completion Date</label>
+                <div style={{ fontSize: '14px', color: 'var(--header-text)' }}>{new Date(viewingReport.date).toLocaleDateString()}</div>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: '700', color: 'var(--body-text-muted)', textTransform: 'uppercase', marginBottom: '4px' }}>Status</label>
+                <span className={styles.statusBadge} style={{ background: '#fef3c7', color: '#d97706', display: 'inline-block', width: 'fit-content' }}>
+                  {viewingReport.status}
+                </span>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: '700', color: 'var(--body-text-muted)', textTransform: 'uppercase', marginBottom: '4px' }}>Work Completed</label>
+                <div style={{ fontSize: '14px', color: 'var(--header-text)', whiteSpace: 'pre-wrap', background: 'var(--body-bg)', padding: '12px', borderRadius: '6px', border: '1px solid var(--card-border)' }}>
+                  {viewingReport.work_completed || '-'}
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: '700', color: 'var(--body-text-muted)', textTransform: 'uppercase', marginBottom: '4px' }}>Issues Encountered</label>
+                <div style={{ fontSize: '14px', color: 'var(--header-text)', whiteSpace: 'pre-wrap', background: 'var(--body-bg)', padding: '12px', borderRadius: '6px', border: '1px solid var(--card-border)' }}>
+                  {viewingReport.issues_encountered || 'None'}
+                </div>
+              </div>
+
+              {viewingReport.photos_notes && (
+                <div>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: '700', color: 'var(--body-text-muted)', textTransform: 'uppercase', marginBottom: '4px' }}>Photos/Notes</label>
+                  <a href={viewingReport.photos_notes} target="_blank" rel="noopener noreferrer" style={{ fontSize: '14px', color: '#4f46e5', textDecoration: 'underline' }}>
+                    {viewingReport.photos_notes}
+                  </a>
+                </div>
+              )}
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '24px', paddingTop: '16px', borderTop: '1px solid var(--card-border)' }}>
+              <button 
+                type="button"
+                onClick={() => setViewingReport(null)}
+                style={{ padding: '10px 20px', background: 'transparent', border: '1px solid var(--card-border)', borderRadius: '6px', color: 'var(--body-text)', cursor: 'pointer', fontSize: '14px', fontWeight: '600' }}
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

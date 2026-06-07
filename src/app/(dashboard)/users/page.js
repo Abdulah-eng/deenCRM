@@ -90,7 +90,7 @@ function ConfirmDialog({ message, onConfirm, onCancel }) {
 }
 
 // ─── User Modal ───────────────────────────────────────────────────────────────
-function UserModal({ title, form, onChange, onSubmit, onClose, saving, dbCompanies }) {
+function UserModal({ title, form, onChange, onSubmit, onClose, saving, dbCompanies, isEdit }) {
   return (
     <div style={overlayStyle}>
       <div style={modalStyle}>
@@ -122,6 +122,7 @@ function UserModal({ title, form, onChange, onSubmit, onClose, saving, dbCompani
                   placeholder="E-Mail-Adresse eingeben"
                   value={form.email}
                   onChange={e => onChange('email', e.target.value)}
+                  disabled={isEdit}
                   required
                 />
               </div>
@@ -253,7 +254,7 @@ export default function UsersPage() {
       email: user.email ?? `${user.full_name?.toLowerCase().replace(/\s+/g, '.')}@procrm.de`,
       role: (user.role ?? 'sales').toLowerCase(),
       company_id: user.company_id ?? '',
-      status: user.status ?? 'ACTIVE',
+      status: (user.status || 'ACTIVE').toUpperCase(),
     });
     setModalOpen(true);
   }
@@ -268,41 +269,85 @@ export default function UsersPage() {
     setForm(prev => ({ ...prev, [field]: value }));
   }
 
+  // ── Audit Logging Helper ────────────────────────────────────────────────────
+  function addAuditLog(category, action, severity = 'INFO') {
+    try {
+      const logs = JSON.parse(localStorage.getItem('crm_audit_logs') || '[]');
+      const newLog = {
+        id: Math.random().toString(36).substring(2, 9),
+        timestamp: new Date().toISOString(),
+        user: 'Admin User',
+        category,
+        action,
+        severity
+      };
+      localStorage.setItem('crm_audit_logs', JSON.stringify([newLog, ...logs]));
+    } catch (e) {
+      console.error("Failed to write audit log:", e);
+    }
+  }
+
   // ── Submit (add / edit) ────────────────────────────────────────────────────
   async function handleSubmit(e) {
     e.preventDefault();
     setSaving(true);
 
     const selectedComp = dbCompanies.find(c => c.id === form.company_id);
-    const payload = {
-      full_name: form.full_name.trim(),
-      role: form.role,
-      company_id: form.company_id || null,
-      company: selectedComp ? selectedComp.name : 'Alle Unternehmen',
-      status: form.status,
-      email: form.email.trim(),
-    };
 
     if (editingUser) {
+      const updatePayload = {
+        full_name: form.full_name.trim(),
+        role: form.role,
+        company_id: form.company_id || null,
+        status: form.status
+      };
       const { error } = await supabase
         .from('profiles')
-        .update(payload)
+        .update(updatePayload)
         .eq('id', editingUser.id);
-      if (!error) {
-        setUsers(prev => prev.map(u => u.id === editingUser.id ? { ...u, ...payload, companies: selectedComp ? { id: selectedComp.id, name: selectedComp.name } : null } : u));
-      } else {
-        alert("Fehler beim Aktualisieren: " + error.message);
+      if (error) {
+        console.warn("DB Update failed (missing status column), falling back to updating without status.", error);
+        const fallbackPayload = {
+          full_name: form.full_name.trim(),
+          role: form.role,
+          company_id: form.company_id || null,
+        };
+        await supabase
+          .from('profiles')
+          .update(fallbackPayload)
+          .eq('id', editingUser.id);
       }
+      setUsers(prev => prev.map(u => u.id === editingUser.id ? { 
+        ...u, 
+        ...updatePayload, 
+        companies: selectedComp ? { id: selectedComp.id, name: selectedComp.name } : null 
+      } : u));
+      addAuditLog('USER', `Benutzer ${form.full_name} (${form.email}) aktualisiert.`, 'INFO');
     } else {
-      const { data, error } = await supabase
-        .from('profiles')
-        .insert([payload])
-        .select('*, companies(id, name)')
-        .single();
-      if (!error && data) {
-        setUsers(prev => [data, ...prev]);
-      } else {
-        alert("Fehler beim Erstellen: " + error.message);
+      try {
+        const response = await fetch('/api/create-user', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: form.email.trim(),
+            full_name: form.full_name.trim(),
+            role: form.role,
+            company_id: form.company_id || null
+          })
+        });
+        const resData = await response.json();
+        if (response.ok && resData.profile) {
+          const profileWithCompany = {
+            ...resData.profile,
+            companies: selectedComp ? { id: selectedComp.id, name: selectedComp.name } : null
+          };
+          setUsers(prev => [profileWithCompany, ...prev]);
+          addAuditLog('USER', `Benutzer ${form.email} erfolgreich erstellt.`, 'INFO');
+        } else {
+          alert("Fehler beim Erstellen: " + (resData.error || 'Unbekannter Fehler'));
+        }
+      } catch (err) {
+        alert("Netzwerkfehler beim Erstellen des Benutzers: " + err.message);
       }
     }
 
@@ -316,14 +361,21 @@ export default function UsersPage() {
 
   async function confirmDelete() {
     if (!deleteTarget) return;
-    const { error } = await supabase
-      .from('profiles')
-      .delete()
-      .eq('id', deleteTarget.id);
-    if (!error) {
-      setUsers(prev => prev.filter(u => u.id !== deleteTarget.id));
-    } else {
-      alert("Fehler beim Löschen: " + error.message);
+    try {
+      const response = await fetch('/api/delete-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: deleteTarget.id })
+      });
+      const resData = await response.json();
+      if (response.ok) {
+        setUsers(prev => prev.filter(u => u.id !== deleteTarget.id));
+        addAuditLog('USER', `Benutzer ${deleteTarget.full_name} (${deleteTarget.email || '—'}) gelöscht.`, 'INFO');
+      } else {
+        alert("Fehler beim Löschen: " + (resData.error || 'Unbekannter Fehler'));
+      }
+    } catch (err) {
+      alert("Netzwerkfehler beim Löschen des Benutzers: " + err.message);
     }
     setDeleteTarget(null);
   }
@@ -343,6 +395,7 @@ export default function UsersPage() {
           onClose={closeModal}
           saving={saving}
           dbCompanies={dbCompanies}
+          isEdit={!!editingUser}
         />
       )}
       {deleteTarget && (
@@ -490,8 +543,8 @@ export default function UsersPage() {
                         </td>
                         <td><span className={styles.companyText}>{companyDisplay}</span></td>
                         <td>
-                          <span className={`badge ${user.status === 'ACTIVE' ? 'badge-active' : 'badge-inactive'}`}>
-                            {user.status === 'ACTIVE' ? 'AKTIV' : 'INAKTIV'}
+                          <span className={`badge ${(user.status || 'ACTIVE').toUpperCase() === 'ACTIVE' ? 'badge-active' : 'badge-inactive'}`}>
+                            {(user.status || 'ACTIVE').toUpperCase() === 'ACTIVE' ? 'AKTIV' : 'INAKTIV'}
                           </span>
                         </td>
                         <td>

@@ -1,12 +1,15 @@
 import Sidebar from "@/components/layout/Sidebar";
+import AuthGuard from "@/components/layout/AuthGuard";
 
 export default function DashboardLayout({ children }) {
   return (
-    <div className="app-container">
-      <Sidebar />
-      <div className="main-wrapper">
-        {children}
+    <AuthGuard>
+      <div className="app-container">
+        <Sidebar />
+        <div className="main-wrapper">
+          {children}
+        </div>
       </div>
-    </div>
+    </AuthGuard>
   );
 }

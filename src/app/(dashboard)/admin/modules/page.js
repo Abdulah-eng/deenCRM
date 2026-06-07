@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from '@/components/layout/Header';
 import {
   ClipboardList, ClipboardCheck, FileText, Calendar,
@@ -27,13 +27,40 @@ const modules = {
 };
 
 export default function ModuleManager() {
-  const [state, setState] = useState(() => {
-    const flat = {};
-    Object.values(modules).flat().forEach(m => { flat[m.id] = m.enabled; });
-    return flat;
-  });
+  const [state, setState] = useState({});
 
-  const toggle = id => setState(prev => ({ ...prev, [id]: !prev[id] }));
+  useEffect(() => {
+    const saved = localStorage.getItem('crm_modules_state');
+    if (saved) {
+      setState(JSON.parse(saved));
+    } else {
+      const flat = {};
+      Object.values(modules).flat().forEach(m => { flat[m.id] = m.enabled; });
+      setState(flat);
+    }
+  }, []);
+
+  const toggle = id => setState(prev => {
+    const updated = { ...prev, [id]: !prev[id] };
+    localStorage.setItem('crm_modules_state', JSON.stringify(updated));
+    
+    try {
+      const logs = JSON.parse(localStorage.getItem('crm_audit_logs') || '[]');
+      const newLog = {
+        id: Math.random().toString(36).substring(2, 9),
+        timestamp: new Date().toISOString(),
+        user: 'Admin User',
+        category: 'SYSTEM',
+        action: `Modul "${id}" wurde ${updated[id] ? 'aktiviert' : 'deaktiviert'}.`,
+        severity: 'INFO'
+      };
+      localStorage.setItem('crm_audit_logs', JSON.stringify([newLog, ...logs]));
+    } catch (e) {
+      console.error(e);
+    }
+    
+    return updated;
+  });
 
   const ModuleCard = ({ mod }) => {
     const Icon = mod.icon;

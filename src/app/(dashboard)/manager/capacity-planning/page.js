@@ -27,7 +27,28 @@ export default function CapacityPlanningPage() {
   };
 
   const handleGenerateReport = () => {
-    alert('Report exported!');
+    if (crews.length === 0 || sortedWeeks.length === 0) {
+      alert("Keine Daten zum Exportieren vorhanden.");
+      return;
+    }
+
+    const headers = ["Crew Name", ...sortedWeeks];
+    const csvRows = [
+      headers.join(","),
+      ...crews.map(crew => [
+        `"${crew.name}"`,
+        ...sortedWeeks.map(week => capacityData[crew.name]?.[week] || 0)
+      ].join(","))
+    ];
+
+    const csvContent = "data:text/csv;charset=utf-8,\uFEFF" + csvRows.join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `capacity_report_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const filteredOrders = orders.filter(o => {

@@ -2,17 +2,21 @@
 
 import { useState } from 'react';
 import Header from '@/components/layout/Header';
-import { Calculator, CheckCircle, Save, RotateCcw } from 'lucide-react';
+import { Calculator, CheckCircle, Save, RotateCcw, Building, Landmark, MapPin, Zap } from 'lucide-react';
+import styles from './page.module.css';
 
 export default function SubsidyCalculatorPage() {
   const [formData, setFormData] = useState({
-    customerName: '',
-    orderType: '',
-    eligibleSystem: '',
-    installationCost: '',
-    energyClass: '',
-    isReplacement: false,
-    buildingType: ''
+    projectType: '',
+    buildingType: 'Residential (Single)',
+    constructionYear: '1985',
+    projectValue: '48200',
+    heatedArea: '320',
+    efficiencyRating: 'Below E (eligible)',
+    customerType: 'Private Homeowner',
+    applyBafa: true,
+    applyKfw: true,
+    applyState: false
   });
 
   const [results, setResults] = useState(null);
@@ -26,37 +30,52 @@ export default function SubsidyCalculatorPage() {
   };
 
   const calculateSubsidy = (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     
-    const cost = parseFloat(formData.installationCost) || 0;
+    const cost = parseFloat(formData.projectValue) || 0;
     if (cost <= 0) {
-      alert('Please enter a valid installation cost.');
+      alert('Please enter a valid project value.');
       return;
     }
-    if (!formData.eligibleSystem) {
-      alert('Please select an eligible system.');
+    if (!formData.projectType) {
+      alert('Please select a project type.');
       return;
     }
 
     let baseRate = 0;
-    switch (formData.eligibleSystem) {
-      case 'Heat Pump': baseRate = 0.30; break;
+    switch (formData.projectType) {
+      case 'Heat Pump': baseRate = 0.25; break;
       case 'Solar Thermal': baseRate = 0.25; break;
       case 'PV System': baseRate = 0.20; break;
       case 'EV Charger': baseRate = 0.15; break;
+      default: baseRate = 0.10;
     }
 
     let bonusRate = 0;
-    if (formData.isReplacement) bonusRate += 0.05;
-    if (formData.energyClass === 'A++' || formData.energyClass === 'A+') bonusRate += 0.05;
-    if (formData.buildingType === 'Residential') bonusRate += 0.05;
-
-    const totalRate = baseRate + bonusRate;
-    let subsidyAmount = cost * totalRate;
+    // Energy Bonus (+5%): Replacing old fossil heater + eligible rating
+    if (formData.efficiencyRating === 'Below E (eligible)' && (formData.projectType === 'Heat Pump' || formData.projectType === 'Solar Thermal')) {
+      bonusRate += 0.05;
+    }
     
-    // Cap at €15,000 max
-    if (subsidyAmount > 15000) {
-      subsidyAmount = 15000;
+    // Bavaria State Subsidy: if checked, add 10%
+    if (formData.applyState) {
+      bonusRate += 0.10;
+    }
+
+    const totalRate = Math.min(baseRate + bonusRate, 0.55); // Cap at 55% combined rate
+    
+    let subsidyAmount = 0;
+    if (formData.applyBafa) {
+      if (cost >= 3000) {
+        subsidyAmount = cost * totalRate;
+        // Cap BAFA at 30000
+        if (subsidyAmount > 30000) subsidyAmount = 30000;
+      }
+    }
+
+    let kfwLoan = 0;
+    if (formData.applyKfw) {
+      kfwLoan = Math.min(cost, 150000);
     }
 
     const customerPays = cost - subsidyAmount;
@@ -64,6 +83,7 @@ export default function SubsidyCalculatorPage() {
     setResults({
       subsidyRate: (totalRate * 100).toFixed(0),
       estimatedSubsidy: subsidyAmount,
+      kfwLoan: kfwLoan,
       customerPays: customerPays,
       cost: cost
     });
@@ -71,13 +91,16 @@ export default function SubsidyCalculatorPage() {
 
   const resetForm = () => {
     setFormData({
-      customerName: '',
-      orderType: '',
-      eligibleSystem: '',
-      installationCost: '',
-      energyClass: '',
-      isReplacement: false,
-      buildingType: ''
+      projectType: '',
+      buildingType: 'Residential (Single)',
+      constructionYear: '1985',
+      projectValue: '48200',
+      heatedArea: '320',
+      efficiencyRating: 'Below E (eligible)',
+      customerType: 'Private Homeowner',
+      applyBafa: true,
+      applyKfw: true,
+      applyState: false
     });
     setResults(null);
   };
@@ -87,196 +110,275 @@ export default function SubsidyCalculatorPage() {
   };
 
   return (
-    <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-      <Header title="Subsidy Calculator" />
+    <div className={styles.container}>
+      <Header title="Förderungsrechner" subtitle="Vertrieb | Förderungsrechner" />
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px', marginTop: '24px' }}>
-        {/* Form Card */}
-        <div style={{ backgroundColor: 'white', padding: '32px', borderRadius: '12px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', border: '1px solid #eaeaea' }}>
-          <h2 style={{ margin: '0 0 24px 0', fontSize: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <Calculator size={24} color="#1a73e8" />
-            BAFA Subsidy Parameters
-          </h2>
+      {/* Header welcome section matching standard Sales view */}
+      <div className={styles.welcomeSection}>
+        <div className={styles.welcome}>
+          <h2>Subsidy Calculator</h2>
+          <p>Automatically calculate subsidies for heating and electrical offers.</p>
+        </div>
+        <button className={styles.headerBtn} onClick={() => calculateSubsidy()}>
+          <Calculator size={16} /> Calculate Subsidies
+        </button>
+      </div>
+
+      <div className={styles.mainGrid}>
+        {/* Left Side Box - Project Parameters Form */}
+        <div className={styles.card}>
+          <h3 className={styles.cardTitle}>
+            <Calculator size={20} color="#10b981" />
+            Project Parameters
+          </h3>
           
-          <form onSubmit={calculateSubsidy} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '14px', color: '#333' }}>Customer Name</label>
-              <input 
-                type="text" 
-                name="customerName"
-                value={formData.customerName}
+          <form onSubmit={calculateSubsidy} className={styles.form}>
+            <div className={styles.formGroup}>
+              <label>Project Type *</label>
+              <select 
+                name="projectType"
+                value={formData.projectType}
                 onChange={handleInputChange}
-                placeholder="e.g. John Doe"
-                style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #ccc', fontSize: '15px' }}
-              />
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-              <div>
-                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '14px', color: '#333' }}>Order Type</label>
-                <select 
-                  name="orderType"
-                  value={formData.orderType}
-                  onChange={handleInputChange}
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #ccc', fontSize: '15px', backgroundColor: 'white' }}
-                >
-                  <option value="">Select Type</option>
-                  <option value="Heating">Heating</option>
-                  <option value="Electrical">Electrical</option>
-                </select>
-              </div>
-              
-              <div>
-                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '14px', color: '#333' }}>Eligible System</label>
-                <select 
-                  name="eligibleSystem"
-                  value={formData.eligibleSystem}
-                  onChange={handleInputChange}
-                  required
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #ccc', fontSize: '15px', backgroundColor: 'white' }}
-                >
-                  <option value="">Select System</option>
-                  <option value="Heat Pump">Heat Pump</option>
-                  <option value="Solar Thermal">Solar Thermal</option>
-                  <option value="PV System">PV System</option>
-                  <option value="EV Charger">EV Charger</option>
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '14px', color: '#333' }}>Installation Cost (€)</label>
-              <input 
-                type="number" 
-                name="installationCost"
-                value={formData.installationCost}
-                onChange={handleInputChange}
-                placeholder="0.00"
+                className={styles.select}
                 required
-                min="0"
-                step="0.01"
-                style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #ccc', fontSize: '15px' }}
-              />
+              >
+                <option value="">Select type...</option>
+                <option value="Heat Pump">Heat Pump (Heating)</option>
+                <option value="Solar Thermal">Solar Thermal (Heating)</option>
+                <option value="PV System">PV System (Electrical)</option>
+                <option value="EV Charger">EV Charger (Electrical)</option>
+              </select>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-              <div>
-                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '14px', color: '#333' }}>Energy Efficiency Class</label>
-                <select 
-                  name="energyClass"
-                  value={formData.energyClass}
-                  onChange={handleInputChange}
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #ccc', fontSize: '15px', backgroundColor: 'white' }}
-                >
-                  <option value="">Select Class</option>
-                  <option value="A++">A++</option>
-                  <option value="A+">A+</option>
-                  <option value="A">A</option>
-                  <option value="B">B</option>
-                </select>
-              </div>
-              
-              <div>
-                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '14px', color: '#333' }}>Building Type</label>
+            <div className={styles.formRow}>
+              <div className={styles.formGroup}>
+                <label>Building Type</label>
                 <select 
                   name="buildingType"
                   value={formData.buildingType}
                   onChange={handleInputChange}
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #ccc', fontSize: '15px', backgroundColor: 'white' }}
+                  className={styles.select}
                 >
-                  <option value="">Select Type</option>
-                  <option value="Residential">Residential</option>
+                  <option value="Residential (Single)">Residential (Single)</option>
+                  <option value="Residential (Multi)">Residential (Multi)</option>
                   <option value="Commercial">Commercial</option>
+                </select>
+              </div>
+              
+              <div className={styles.formGroup}>
+                <label>Construction Year</label>
+                <input 
+                  type="text" 
+                  name="constructionYear"
+                  value={formData.constructionYear}
+                  onChange={handleInputChange}
+                  className={styles.input}
+                />
+              </div>
+            </div>
+
+            <div className={styles.formRow}>
+              <div className={styles.formGroup}>
+                <label>Total Project Value (€)</label>
+                <input 
+                  type="number" 
+                  name="projectValue"
+                  value={formData.projectValue}
+                  onChange={handleInputChange}
+                  className={styles.input}
+                  min="0"
+                  step="0.01"
+                />
+              </div>
+              
+              <div className={styles.formGroup}>
+                <label>Heated Area (m²)</label>
+                <input 
+                  type="number" 
+                  name="heatedArea"
+                  value={formData.heatedArea}
+                  onChange={handleInputChange}
+                  className={styles.input}
+                  min="0"
+                />
+              </div>
+            </div>
+
+            <div className={styles.formRow}>
+              <div className={styles.formGroup}>
+                <label>Energy Efficiency Rating</label>
+                <select 
+                  name="efficiencyRating"
+                  value={formData.efficiencyRating}
+                  onChange={handleInputChange}
+                  className={styles.select}
+                >
+                  <option value="Below E (eligible)">Below E (eligible)</option>
+                  <option value="E or above">E or above</option>
+                </select>
+              </div>
+
+              <div className={styles.formGroup}>
+                <label>Customer Type</label>
+                <select 
+                  name="customerType"
+                  value={formData.customerType}
+                  onChange={handleInputChange}
+                  className={styles.select}
+                >
+                  <option value="Private Homeowner">Private Homeowner</option>
+                  <option value="Business / Commercial">Business / Commercial</option>
                 </select>
               </div>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '8px' }}>
-              <input 
-                type="checkbox" 
-                id="isReplacement"
-                name="isReplacement"
-                checked={formData.isReplacement}
-                onChange={handleInputChange}
-                style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-              />
-              <label htmlFor="isReplacement" style={{ fontSize: '15px', cursor: 'pointer', color: '#333' }}>
-                Replacing old fossil fuel heating system? (+5% bonus)
+            <div className={styles.checkboxGroup}>
+              <label className={styles.checkboxLabel}>
+                <input 
+                  type="checkbox" 
+                  name="applyBafa"
+                  checked={formData.applyBafa}
+                  onChange={handleInputChange}
+                  className={styles.checkbox}
+                />
+                Apply BAFA Federal Subsidy
+              </label>
+
+              <label className={styles.checkboxLabel}>
+                <input 
+                  type="checkbox" 
+                  name="applyKfw"
+                  checked={formData.applyKfw}
+                  onChange={handleInputChange}
+                  className={styles.checkbox}
+                />
+                Apply KfW Funding (loan)
+              </label>
+
+              <label className={styles.checkboxLabel}>
+                <input 
+                  type="checkbox" 
+                  name="applyState"
+                  checked={formData.applyState}
+                  onChange={handleInputChange}
+                  className={styles.checkbox}
+                />
+                Apply State (Bavaria) Subsidy
               </label>
             </div>
 
-            <div style={{ display: 'flex', gap: '16px', marginTop: '16px' }}>
-              <button 
-                type="submit"
-                style={{ flex: 1, padding: '12px', borderRadius: '6px', border: 'none', background: '#1a73e8', color: 'white', fontSize: '16px', fontWeight: '600', cursor: 'pointer', transition: 'background 0.2s' }}
-              >
-                Calculate Subsidy
+            <div style={{ display: 'flex', gap: '16px', marginTop: '10px' }}>
+              <button type="submit" className={styles.calculateBtn}>
+                <Calculator size={18} /> Calculate All Subsidies
               </button>
               <button 
                 type="button"
                 onClick={resetForm}
-                style={{ padding: '12px 24px', borderRadius: '6px', border: '1px solid #ccc', background: '#f8f9fa', color: '#333', fontSize: '16px', fontWeight: '500', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+                style={{ padding: '12px 20px', borderRadius: '8px', border: '1px solid var(--card-border)', background: 'var(--card-bg)', color: 'var(--body-text)', fontSize: '15px', fontWeight: '500', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
               >
                 <RotateCcw size={18} /> Reset
               </button>
             </div>
           </form>
-        </div>
 
-        {/* Results Card */}
-        <div style={{ backgroundColor: '#f8fafd', padding: '32px', borderRadius: '12px', border: '1px solid #e1ebfa', display: 'flex', flexDirection: 'column' }}>
-          <h2 style={{ margin: '0 0 24px 0', fontSize: '20px', display: 'flex', alignItems: 'center', gap: '10px', color: '#1a73e8' }}>
-            <CheckCircle size={24} />
-            Calculation Results
-          </h2>
-          
-          {results ? (
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-              <div style={{ backgroundColor: 'white', padding: '24px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.02)', marginBottom: '24px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', alignItems: 'center' }}>
-                  <span style={{ color: '#5f6368', fontSize: '16px' }}>Total Project Cost</span>
-                  <span style={{ fontSize: '18px', fontWeight: '500' }}>€{results.cost.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+          {/* Results section rendered dynamically inside the parameters container */}
+          {results && (
+            <div className={styles.resultsSection}>
+              <h3 className={styles.cardTitle} style={{ color: '#10b981', borderTop: '1px dashed var(--card-border)', paddingTop: '24px', marginTop: 0 }}>
+                <CheckCircle size={20} />
+                Calculation Results
+              </h3>
+              
+              <div className={styles.resultsCard}>
+                <div className={styles.resultRow}>
+                  <span>Total Project Cost</span>
+                  <span className={styles.resultValue}>€ {results.cost.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
                 </div>
                 
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', alignItems: 'center' }}>
-                  <span style={{ color: '#5f6368', fontSize: '16px' }}>Eligible Subsidy Rate</span>
-                  <span style={{ fontSize: '18px', fontWeight: '600', color: '#1a73e8', backgroundColor: '#e8f0fe', padding: '4px 12px', borderRadius: '16px' }}>{results.subsidyRate}%</span>
+                <div className={styles.resultRow}>
+                  <span>Eligible Subsidy Rate</span>
+                  <span className={styles.resultRateBadge}>{results.subsidyRate}%</span>
                 </div>
                 
-                <div style={{ borderTop: '1px dashed #ccc', margin: '20px 0' }}></div>
+                {formData.applyKfw && (
+                  <div className={styles.resultRow}>
+                    <span>KfW Subsidized Loan</span>
+                    <span className={styles.resultValue} style={{ color: '#3b82f6' }}>€ {results.kfwLoan.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                  </div>
+                )}
                 
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', alignItems: 'center' }}>
-                  <span style={{ color: '#333', fontSize: '16px', fontWeight: '500' }}>Estimated Subsidy Amount</span>
-                  <span style={{ fontSize: '24px', fontWeight: '700', color: '#1e8e3e' }}>€{results.estimatedSubsidy.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                <div className={styles.resultTotalRow}>
+                  <span>Estimated Subsidy Amount</span>
+                  <span className={styles.resultTotalValue}>€ {results.estimatedSubsidy.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
                 </div>
                 
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ color: '#333', fontSize: '16px', fontWeight: '500' }}>Customer Pays (Net)</span>
-                  <span style={{ fontSize: '24px', fontWeight: '700' }}>€{results.customerPays.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                <div className={styles.resultTotalRow} style={{ borderTop: 'none', paddingTop: 0, marginTop: 10 }}>
+                  <span style={{ fontWeight: '600' }}>Customer Pays (Net)</span>
+                  <span style={{ fontSize: '20px', color: 'var(--header-text)' }}>€ {results.customerPays.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
                 </div>
               </div>
 
-              <div style={{ backgroundColor: '#fff8e1', padding: '16px', borderRadius: '8px', border: '1px solid #ffecb3', marginBottom: 'auto' }}>
-                <h4 style={{ margin: '0 0 8px 0', color: '#b08d00', fontSize: '14px' }}>Eligibility Notes</h4>
-                <ul style={{ margin: 0, paddingLeft: '20px', color: '#5c4d06', fontSize: '13px', lineHeight: '1.5' }}>
-                  {results.estimatedSubsidy >= 15000 && <li>The subsidy amount has reached the maximum cap of €15,000.</li>}
+              <div className={styles.notesCard}>
+                <h4 className={styles.notesTitle}>Eligibility Notes</h4>
+                <ul className={styles.notesList}>
+                  {results.estimatedSubsidy >= 30000 && <li>The subsidy amount has reached the maximum cap of €30,000.</li>}
                   <li>This is an estimate. Final approval is subject to BAFA verification.</li>
                   <li>Application must be submitted BEFORE ordering the system.</li>
                 </ul>
               </div>
 
-              <button 
-                onClick={saveToOrder}
-                style={{ width: '100%', marginTop: '24px', padding: '14px', borderRadius: '6px', border: 'none', background: '#34a853', color: 'white', fontSize: '16px', fontWeight: '600', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', transition: 'background 0.2s' }}
-              >
-                <Save size={20} /> Save to Order
+              <button onClick={saveToOrder} className={styles.saveBtn}>
+                <Save size={18} /> Save to Order
               </button>
             </div>
-          ) : (
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888', fontStyle: 'italic', backgroundColor: 'white', borderRadius: '8px', border: '1px dashed #ccc' }}>
-              Fill in the parameters and calculate to see results.
-            </div>
           )}
+        </div>
+
+        {/* Right Side Stack - Information Cards */}
+        <div className={styles.infoStack}>
+          {/* Card 1 */}
+          <div className={styles.infoCard} style={{ backgroundColor: 'rgba(16, 185, 129, 0.04)', border: '1px solid rgba(16, 185, 129, 0.15)' }}>
+            <div className={styles.infoIcon} style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}>
+              <Building size={20} />
+            </div>
+            <div className={styles.infoDetails}>
+              <h4 style={{ color: '#065f46' }}>BAFA — Federal Office</h4>
+              <p style={{ color: '#047857' }}>Up to 25% for heat pumps, up to 35% with bonus. Min project value € 3,000.</p>
+            </div>
+          </div>
+
+          {/* Card 2 */}
+          <div className={styles.infoCard} style={{ backgroundColor: 'rgba(59, 130, 246, 0.04)', border: '1px solid rgba(59, 130, 246, 0.15)' }}>
+            <div className={styles.infoIcon} style={{ background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6' }}>
+              <Landmark size={20} />
+            </div>
+            <div className={styles.infoDetails}>
+              <h4 style={{ color: '#1e3a8a' }}>KfW — Federal Bank</h4>
+              <p style={{ color: '#1d4ed8' }}>Subsidized loans from 1.99% p.a. Up to € 150,000 for energy-efficient renovation.</p>
+            </div>
+          </div>
+
+          {/* Card 3 */}
+          <div className={styles.infoCard} style={{ backgroundColor: 'rgba(245, 158, 11, 0.04)', border: '1px solid rgba(245, 158, 11, 0.15)' }}>
+            <div className={styles.infoIcon} style={{ background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b' }}>
+              <MapPin size={20} />
+            </div>
+            <div className={styles.infoDetails}>
+              <h4 style={{ color: '#78350f' }}>Bavaria State Subsidy</h4>
+              <p style={{ color: '#b45309' }}>Additional 10% for Bavarian homeowners. Combined max 55% of eligible costs.</p>
+            </div>
+          </div>
+
+          {/* Card 4 */}
+          <div className={styles.infoCard} style={{ backgroundColor: 'rgba(139, 92, 246, 0.04)', border: '1px solid rgba(139, 92, 246, 0.15)' }}>
+            <div className={styles.infoIcon} style={{ background: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6' }}>
+              <Zap size={20} />
+            </div>
+            <div className={styles.infoDetails}>
+              <h4 style={{ color: '#4c1d95' }}>Energy Bonus (+5%)</h4>
+              <p style={{ color: '#6d28d9' }}>Extra 5% if replacing fossil fuel heater. Auto-applied for qualifying projects.</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>

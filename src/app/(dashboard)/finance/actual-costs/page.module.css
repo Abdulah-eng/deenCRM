@@ -26,3 +26,145 @@
 .actions { display: flex; gap: 6px; }
 .actionBtn { width: 26px; height: 26px; border-radius: 6px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: opacity 0.15s; }
 .actionBtn:hover { opacity: 0.8; }
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.controls select {
+  padding: 8px 12px;
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+  background: var(--card-bg);
+  color: var(--body-text);
+  font-size: 13px;
+  font-weight: 500;
+  outline: none;
+  cursor: pointer;
+}
+
+.addButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: #7239ea;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.addButton:hover {
+  background: #5b28cc;
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(3px);
+  padding: 24px;
+}
+
+.modal {
+  background: var(--card-bg);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--card-border);
+  background: linear-gradient(135deg, rgba(114, 57, 234, 0.06), rgba(114, 57, 234, 0.02));
+}
+
+.modalHeader h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--header-text);
+}
+
+.modalHeader button {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--card-border);
+  background: var(--body-bg);
+  color: var(--body-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.modal form {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.formGroup label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--body-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.formGroup input,
+.formGroup select {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1.5px solid var(--card-border);
+  border-radius: 8px;
+  background: var(--body-bg);
+  color: var(--body-text);
+  font-size: 13px;
+  font-family: inherit;
+  box-sizing: border-box;
+  outline: none;
+}
+
+.submitBtn {
+  margin-top: 8px;
+  padding: 10px 18px;
+  border-radius: 8px;
+  border: none;
+  background: #7239ea;
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.submitBtn:hover {
+  background: #5b28cc;
+}

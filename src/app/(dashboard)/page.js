@@ -1,17 +1,34 @@
-import Header from "@/components/layout/Header";
+"use client";
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { supabase } from '@/utils/supabase';
 
-export default function Home() {
-  return (
-    <>
-      <Header title="Dashboard" subtitle="Overview" />
-      <div className="main-content">
-        <div className="card" style={{ padding: '30px' }}>
-          <h2>Welcome to ProCRM</h2>
-          <p style={{ marginTop: '10px', color: 'var(--body-text-muted)' }}>
-            Select an option from the sidebar to get started.
-          </p>
-        </div>
-      </div>
-    </>
-  );
+export default function DashboardRoot() {
+  const router = useRouter();
+
+  useEffect(() => {
+    async function redirectToRoleDashboard() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { router.replace('/login'); return; }
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', session.user.id)
+        .single();
+
+      const roleRoutes = {
+        'admin': '/admin/dashboard',
+        'manager': '/manager/dashboard',
+        'sales': '/sales/dashboard',
+        'crew': '/crew/dashboard',
+        'finance': '/finance/dashboard',
+      };
+
+      router.replace(roleRoutes[profile?.role] || '/manager/dashboard');
+    }
+    redirectToRoleDashboard();
+  }, [router]);
+
+  return null;
 }
