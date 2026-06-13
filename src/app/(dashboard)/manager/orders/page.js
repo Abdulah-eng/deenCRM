@@ -117,8 +117,15 @@ export default function AllOrders() {
         setFormValue(data.total || '0.00');
         
         if (data.items && data.items.length > 0) {
-          const notes = data.items.map(item => `- ${item.quantity}x ${item.description} (@ €${item.price})`).join('\\n');
-          setFormNotes("Extrahierte Positionen:\\n" + notes);
+          const newTasks = data.items.map((item, idx) => ({
+            id: Date.now() + idx,
+            name: item.description,
+            quantity: item.quantity || 0,
+            assignee: 'Team A',
+            status: 'Offen'
+          }));
+          setSubTasks(newTasks);
+          setFormNotes("Positionen wurden automatisch als Teilaufgaben angelegt.");
         }
         
       } else {
@@ -188,6 +195,18 @@ export default function AllOrders() {
         .select();
 
       if (error) throw error;
+      const createdOrderId = data[0].id;
+
+      // 4. Save order positions (subTasks)
+      if (subTasks.length > 0) {
+        const positionsToInsert = subTasks.map(t => ({
+          order_id: createdOrderId,
+          description: t.name,
+          quantity: t.quantity || 1,
+          unit: 'm²'
+        }));
+        await supabase.from('order_positions').insert(positionsToInsert);
+      }
 
       alert('Auftrag erfolgreich erstellt!');
       setShowModal(false);
@@ -541,6 +560,14 @@ export default function AllOrders() {
                       value={task.name} 
                       onChange={(e) => updateSubTask(task.id, 'name', e.target.value)} 
                       style={{ flex: 2 }}
+                    />
+                    <input 
+                      type="number" 
+                      placeholder="Menge" 
+                      className={styles.formInput} 
+                      value={task.quantity || ''} 
+                      onChange={(e) => updateSubTask(task.id, 'quantity', e.target.value)} 
+                      style={{ width: '80px' }}
                     />
                     <select 
                       className={styles.formInput} 

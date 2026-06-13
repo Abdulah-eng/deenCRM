@@ -5,14 +5,6 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request) {
   try {
-    // Polyfill DOMMatrix for pdf-parse dependency on Node.js context
-    if (typeof global.DOMMatrix === 'undefined') {
-      global.DOMMatrix = class DOMMatrix {
-        constructor() {}
-      };
-    }
-
-    const pdfParse = require('pdf-parse');
     const formData = await request.formData();
     const file = formData.get('file');
 
@@ -21,26 +13,27 @@ export async function POST(request) {
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    const parser = new pdfParse.PDFParse({ data: buffer });
-    await parser.load();
-    const pdfData = await parser.getText();
-    const pdfText = pdfData.text;
-    await parser.destroy();
 
     // Initialize Gemini SDK with explicit API key
     const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
     const prompt = `
-You are an expert data extractor. Extract the following details from the text of this customer order PDF.
-Text:
-"""
-${pdfText}
-"""
+You are an expert data extractor for construction/screed orders.
+Extract the following details from this customer order PDF.
+
+Please extract:
+1. Customer Name (Auftraggeber / AG)
+2. Customer Address or Project Address (BV or Anschrift)
+3. Order Items (Positions): Extract the "Estrich" and "Dämmung" rows from the different floors (OG, EG, UG). For each item, capture the description (e.g. "Anhydritestrich 54mm", "EPS DEO 035", "Trittschall", "Zementestrich im DG"), the quantity (m²), and leave price as 0 if not specified.
+4. Total area (Gesamtfläche)
     `;
 
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
-      contents: prompt,
+      contents: [
+        { inlineData: { data: buffer.toString('base64'), mimeType: 'application/pdf' } },
+        { text: prompt }
+      ],
       config: {
         responseMimeType: 'application/json',
         responseSchema: {

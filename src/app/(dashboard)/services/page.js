@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Header from '@/components/layout/Header';
 import { supabase } from '@/utils/supabase';
-import { Plus, Search, Edit3, Trash2, X, Settings } from 'lucide-react';
+import { Plus, Search, Edit3, Trash2, X, Settings, Package } from 'lucide-react';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -215,6 +215,11 @@ const styles = {
     background: 'rgba(239,68,68,0.12)',
     color: '#f87171',
     border: '1px solid rgba(239,68,68,0.2)',
+  },
+  materialBtn: {
+    background: 'rgba(80,205,137,0.12)',
+    color: '#50cd89',
+    border: '1px solid rgba(80,205,137,0.2)',
   },
   emptyState: {
     textAlign: 'center',
@@ -581,11 +586,47 @@ export default function ServicesPage() {
   const [editService, setEditService] = useState(null);
   const [modalLoading, setModalLoading] = useState(false);
 
+  // Materials Modal state
+  const [materialsModalOpen, setMaterialsModalOpen] = useState(false);
+  const [materialsTarget, setMaterialsTarget] = useState(null);
+  const [allMaterials, setAllMaterials] = useState([]);
+  const [serviceMaterials, setServiceMaterials] = useState([]);
+  const [materialsLoading, setMaterialsLoading] = useState(false);
+
   // Delete state
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
   // ── Fetch ──────────────────────────────────────────────────────────────────
+
+  const openMaterials = async (service) => {
+    setMaterialsTarget(service);
+    setMaterialsLoading(true);
+    setMaterialsModalOpen(true);
+    // Fetch all materials
+    const { data: mats } = await supabase.from('materials').select('*').order('name');
+    if (mats) setAllMaterials(mats);
+    // Fetch linked materials
+    const { data: links } = await supabase.from('service_materials').select('*').eq('service_id', service.id);
+    if (links) setServiceMaterials(links);
+    setMaterialsLoading(false);
+  };
+
+  const saveMaterialLink = async (materialId, quantity) => {
+    if (quantity <= 0) {
+      await supabase.from('service_materials').delete().match({ service_id: materialsTarget.id, material_id: materialId });
+      setServiceMaterials(prev => prev.filter(l => l.material_id !== materialId));
+    } else {
+      const existing = serviceMaterials.find(l => l.material_id === materialId);
+      if (existing) {
+        await supabase.from('service_materials').update({ quantity_per_unit: quantity }).match({ id: existing.id });
+        setServiceMaterials(prev => prev.map(l => l.id === existing.id ? { ...l, quantity_per_unit: quantity } : l));
+      } else {
+        const { data } = await supabase.from('service_materials').insert([{ service_id: materialsTarget.id, material_id: materialId, quantity_per_unit: quantity }]).select().single();
+        if (data) setServiceMaterials(prev => [...prev, data]);
+      }
+    }
+  };
 
   const fetchServices = useCallback(async () => {
     setLoading(true);
@@ -813,6 +854,14 @@ export default function ServicesPage() {
                         >
                           <Trash2 size={13} /> Delete
                         </button>
+                        <button
+                          style={{ ...styles.iconBtn, ...styles.materialBtn }}
+                          onClick={() => openMaterials(service)}
+                          onMouseEnter={e => { e.currentTarget.style.opacity = '0.8'; e.currentTarget.style.transform = 'scale(0.97)'; }}
+                          onMouseLeave={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = ''; }}
+                        >
+                          <Package size={13} /> Materials
+                        </button>
                       </div>
                     </div>
                   );
@@ -839,6 +888,64 @@ export default function ServicesPage() {
         onConfirm={handleDelete}
         loading={deleteLoading}
       />
+
+      {/* Materials Modal */}
+      {materialsModalOpen && materialsTarget && (
+        <div style={styles.overlay} onClick={e => e.target === e.currentTarget && setMaterialsModalOpen(false)}>
+          <div style={{ ...styles.modal, maxWidth: '600px' }}>
+            <button style={styles.closeBtn} onClick={() => setMaterialsModalOpen(false)} aria-label="Close"><X size={16} /></button>
+            <div style={styles.modalTitle}><Package size={20} color="#50cd89" /> Materials for {materialsTarget.name}</div>
+            {materialsLoading ? (
+              <div style={styles.loadingWrap}>Loading materials...</div>
+            ) : (
+              <div style={{ maxHeight: '60vh', overflowY: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', color: '#e2e8f0' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                      <th style={{ padding: '10px 8px' }}>Material</th>
+                      <th style={{ padding: '10px 8px', width: '100px' }}>Required / m²</th>
+                      <th style={{ padding: '10px 8px', width: '80px' }}>Unit</th>
+                      <th style={{ padding: '10px 8px', width: '100px' }}>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {allMaterials.map(m => {
+                      const link = serviceMaterials.find(l => l.material_id === m.id);
+                      const isLinked = !!link;
+                      return (
+                        <tr key={m.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                          <td style={{ padding: '8px' }}>{m.name}</td>
+                          <td style={{ padding: '8px' }}>
+                            <input 
+                              type="number" 
+                              min="0" step="any"
+                              defaultValue={link ? link.quantity_per_unit : ''}
+                              id={`mat-qty-${m.id}`}
+                              style={{ width: '80px', padding: '6px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', borderRadius: '4px' }}
+                            />
+                          </td>
+                          <td style={{ padding: '8px', color: '#94a3b8' }}>{m.unit || 'kg'}</td>
+                          <td style={{ padding: '8px' }}>
+                            <button 
+                              style={{ padding: '6px 12px', background: '#667eea', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                              onClick={() => {
+                                const qty = parseFloat(document.getElementById(`mat-qty-${m.id}`).value);
+                                saveMaterialLink(m.id, isNaN(qty) ? 0 : qty);
+                              }}
+                            >
+                              Save
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </>
   );
 }
