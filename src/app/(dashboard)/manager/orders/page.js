@@ -129,7 +129,10 @@ export default function AllOrders() {
         }
         
       } else {
-        alert("Fehler beim Verarbeiten des PDFs: " + data.error);
+        const msg = res.status === 503
+          ? '⏳ KI-Dienst ist vorübergehend überlastet. Bitte in 30 Sekunden erneut versuchen.'
+          : 'Fehler beim Verarbeiten des PDFs: ' + (data.error || 'Unbekannter Fehler');
+        alert(msg);
       }
     } catch (error) {
       console.error(error);
@@ -441,10 +444,10 @@ export default function AllOrders() {
                   <Wand2 size={16} style={{ marginRight: 8 }} /> KI-Auto-Ausfüllung aus PDF
                 </h4>
                 <p style={{ margin: '0 0 12px 0', fontSize: '13px', color: '#5e6278' }}>
-                  Laden Sie die PDF-Bestellung des Kunden hoch. Unsere Gemini-KI extrahiert sofort den Kunden, die Adresse und die Positionen, um das Formular vorauszufüllen!
+                  Laden Sie die PDF- oder Excel-Bestellung des Kunden hoch. Unsere Gemini-KI extrahiert sofort den Kunden, die Adresse und die Positionen, um das Formular vorauszufüllen!
                 </p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <input type="file" accept="application/pdf" onChange={handleFileUpload} className={styles.formInput} style={{ flex: 1, cursor: 'pointer' }} disabled={isParsing} />
+                  <input type="file" accept="application/pdf, .xlsx, .xls" onChange={handleFileUpload} className={styles.formInput} style={{ flex: 1, cursor: 'pointer' }} disabled={isParsing} />
                   {isParsing && <span style={{ color: '#7239ea', fontSize: '13px', fontWeight: 500 }}>✨ Extrahiere Daten...</span>}
                 </div>
               </div>
